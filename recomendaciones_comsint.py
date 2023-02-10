@@ -65,9 +65,12 @@ class Recomendador():
         """
 
         # Si hay hardware de GPU, inicializarlo y configurarlo para que administre bien la memoria del hardware
-        physical_devices = config.list_physical_devices('GPU') 
-        config.experimental.set_memory_growth(physical_devices[0], False)        
-        tf.config.set_visible_devices([], 'GPU')
+        try:
+            physical_devices = config.list_physical_devices('GPU') 
+            config.experimental.set_memory_growth(physical_devices[0], False)        
+            tf.config.set_visible_devices([], 'GPU')
+        except:
+            pass
 
         # cargamos el modelo entrenado en español
         self.nlp = spacy.load("es_core_news_md")
