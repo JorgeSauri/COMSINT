@@ -417,6 +417,8 @@ class Recomendador():
         Parámetros:
         @array_recetas: Un arreglo con las recetas y su información nutricional en formato numPy array.
         @max_len: El número máximo de tokens para la matriz de embedings. 
+        @save: Indica si se guardan los arrays numpy
+        @verbose: Muestra los mensajes durante el proceso
 
         Devuelve 2 arreglos:
         x: un arreglo con todas las matrices de embbedings para usar como entrada a un modelo
@@ -621,9 +623,9 @@ class Recomendador():
 
             dataset_entrenamiento[np.random.randint(len(dataset_entrenamiento))]      
 
-            x, y = self.calcular_feature_vecs(dataset_entrenamiento, max_len=self.EMB_SIZE, save=save, verbose=verbose)
+            x, y = self.calcular_feature_vecs(dataset_entrenamiento, max_len=self.EMB_SIZE, save=False, verbose=verbose)
 
-        x_train, x_test, y_train, y_test = train_test_split(x, y, train_size=0.9, shuffle=True)
+        x_train, x_test, y_train, y_test = train_test_split(x, y, train_size=0.8, shuffle=True)
         if (verbose): x_test, x_val, y_test, y_val = train_test_split(x_test, y_test, train_size=0.8)
         
         train_dataset = tf.data.Dataset.from_tensor_slices((x_train, y_train)).batch(batch_size)
@@ -653,7 +655,7 @@ class Recomendador():
             self.modeloCNN.save(archivoC)
             print('modelo guardado en:', archivoC)
 
-        if (verbose): self.EvaluarModeloRegresion(self.modeloCNN, self.INFO_COLS, history, x_val, y_val)   
+        if (verbose): self.EvaluarModeloRegresion(self.INFO_COLS, history, x_val, y_val, self.modeloCNN)   
 
         return self.modeloCNN, history
 
