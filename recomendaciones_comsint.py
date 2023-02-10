@@ -533,9 +533,11 @@ class Recomendador():
 
         Devuelve: None
         """
-
-        if modelo==None:
-            modelo = self.modeloCNN
+        try:
+            if modelo==None:
+                modelo = self.modeloCNN
+        except:
+            pass
 
         pd.DataFrame(history.history).plot()
 
