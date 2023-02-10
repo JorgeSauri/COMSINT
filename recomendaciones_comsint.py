@@ -553,7 +553,7 @@ class Recomendador():
                 for j in range(len(INFO_COLS)):
                     error = y_val[i][j] / test_predictions[i][j]
                     if (error > 1): error = error - 2
-                    sum_error.append(error)
+                    sum_error.append(np.abs(error))
                     print('receta',i, INFO_COLS[j]+'_true:', y_val[i][j], INFO_COLS[j]+'_pred:', 
                             test_predictions[i][j], ' precisión:', round(error * 100, 1),'%')
                 print('---------------------------------------------------------------------------')
