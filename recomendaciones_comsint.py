@@ -637,7 +637,7 @@ class Recomendador():
                                                         numero_salidas=y_train.shape[1])
 
         self.modeloCNN.compile(Adam(learning_rate=1e-4), loss="mean_absolute_error", metrics=['mae'])
-        if (verbose): self.modeloCNN.summary()
+        #if (verbose): self.modeloCNN.summary()
 
         archivoC = 'Modelos/Modelo_Nut_FV_DistilBERT_02_EMBED-'+ str(self.EMB_SIZE) +'_CNN.h5'
 
