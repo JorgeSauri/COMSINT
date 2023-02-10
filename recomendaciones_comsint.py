@@ -542,6 +542,7 @@ class Recomendador():
             pass
 
         pd.DataFrame(history.history).plot()
+        plt.show()
 
         scores = modelo.evaluate(x_val, y_val)
         print(scores)
