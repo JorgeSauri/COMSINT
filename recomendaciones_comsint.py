@@ -41,6 +41,7 @@ class Recomendador():
     basedir = ''
 
     def __init__(self,
+                 basedir = '',
                  fuente='recetas.csv',
                  nutricion='nutricion.csv',
                  canasta='canasta_basica.csv',
@@ -71,6 +72,8 @@ class Recomendador():
             tf.config.set_visible_devices([], 'GPU')
         except:
             pass
+
+        self.basedir = basedir
 
         # cargamos el modelo entrenado en español
         self.nlp = spacy.load("es_core_news_md")
