@@ -184,7 +184,29 @@ class Recomendador():
                                     cantidad = 0
                     result = medida
                     break
-        return result
+        return result, cantidad
+
+    def convertir_a_gramos(self, cantidad, unidad):
+        Convercion = {                
+                'onzas': 28.35,
+                'kilos': 1000,
+                'miligramos': 0.0009,
+                'gramos': 1,
+                'litros': 1000,
+                'mililitros': 0.0009,        
+                'piezas': 100,
+                'tazas': 0.213,  
+                'cucharadas': 0.0135,
+                'cucharaditas': 0.0045
+                }    
+        result = 0
+        # encontrar que unidad del diccionario es:
+        for medida in self.Medidas:
+            if unidad == medida:
+                factor = Convercion[unidad]
+                result = cantidad * factor
+                break
+        return round(result,2)
 
     def separar_ingredientes_spacy(self, cadena):
         """
@@ -221,7 +243,7 @@ class Recomendador():
                 if token.like_num and token.text.isnumeric():
                     cantidad = float(token.text)
                     # Buscar la unidad
-                    unidad = self.encontrar_unidades(cad.split(token.text)[1])
+                    unidad = self.encontrar_unidades(cad.split(token.text)[1])[0]
                     ingrediente_texto = cad.split(token.text)[1]
                     ingrediente_texto = self.LimpiarString(ingrediente_texto)
 
@@ -241,7 +263,7 @@ class Recomendador():
                         if token.text.strip() == cf:
                             cantidades.append(nf)
                             # Buscar unidades
-                            unidad = self.encontrar_unidades(cad.split(token.text)[1])
+                            unidad = self.encontrar_unidades(cad.split(token.text)[1])[0]
                             unidades.append(unidad)
                             ingrediente_texto = cad.split(token.text)[1]
                             ingrediente_texto = self.LimpiarString(ingrediente_texto)
