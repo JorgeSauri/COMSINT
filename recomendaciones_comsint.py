@@ -163,28 +163,38 @@ class Recomendador():
 
         # Por defecto regresaremos la unidad 'pieza'
         result = 'piezas'
-
-        cantidad = 0
+        cantidad = 1
 
         son_subunidades = False
+        sin_cantidad = False
         for medida in self.Medidas:
             for abr in self.Medidas[medida]:
+                if sin_cantidad: #no halló cantidad, usar 1 y la primera unidad
+                    cantidad = 1
+                    break
+
                 index = cadena.find(abr)                               
-                if index > -1 and not son_subunidades:                                                                            
-                    cantidad = cadena.split(abr)[0].strip()                   
+                if index > -1 and not son_subunidades:                                                                             
+                    cantidad = cadena.split(abr)[0].strip()  
+                    #print('hallé', abr)                 
                     for subcad in cantidad.split(' '):
                         if subcad.isnumeric:
                             try:
                                 cantidad = float(subcad.strip())                                                              
                                 son_subunidades = True
                             except:
-                                if son_subunidades:
+                                #print('falla al convertir a cantidad')
+                                sin_cantidad = True
+                                if son_subunidades:                                    
+                                    sin_cantidad = False
                                     break
                                 else:
-                                    cantidad = 0
+                                    cantidad = 1
+                       
                     result = medida
                     break
-        return result, cantidad
+
+        return cantidad, result
 
     def convertir_a_gramos(self, cantidad, unidad):
         Convercion = {                
