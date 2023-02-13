@@ -79,18 +79,18 @@ class Recomendador():
         self.nlp = spacy.load("es_core_news_md")
 
         # Diccionario de medidas más comunes en recetas
-        self.Medidas = {
-            'miligramos': ['mg ', 'miligramo ', 'miligramos ', 'mgr ', 'mg.', 'mgr.'],
-            'gramos': ['gramos ', 'gr ', 'g ', 'gram ', 'grams ', 'gr.', 'g.', 'gram.', 'grams.'],
+        self.Medidas = {                
             'onzas': ['onza ', 'onzas ', 'oz ', 'ozs ', 'onza.', 'onzas.', 'oz.', 'ozs.'],
-            'kilos': ['kilo ', 'kilos ', 'kg ', 'k ', 'kgr ', 'kilo.', 'kilos.', 'kg.', 'k.', 'kgr.'],
-            'mililitros': ['mililitro ', 'mililitros ', 'ml ', 'mltr ', 'mltrs ', 'ml.', 'mltr.', 'mltrs.'],
-            'litros': ['litro ', 'litros ', 'l ', 'lt ', 'ltr ', 'ltrs ', 'l.', 'lt.', 'ltr.', 'ltrs.'],
-            'piezas': ['pieza ', 'piezas ', 'unidad ', 'unidades ', 'pz ', 'pza ', 'pz.', 'pza.'],
-            'tazas': ['taza ', 'tazas ', 'tza ', 'tz ', 'cup ', 'cups ', 'tza.', 'tz.'],
-            'cucharadas': ['cucharada ', 'cucharadas ', 'cuch ', 'cda ', 'cdas ', 'cuch.', 'cda.', 'cdas.', 'tbsp ',
-                           'tbsp.'],
-            'cucharaditas': ['cucharadita ', 'cucharaditas ', 'cdta ', 'cdtas ', 'cdta.', 'cdtas.', 'tsp ', 'tsp.']
+            'kilos': ['kilo ', 'kilos ', 'kg ', 'k ', 'kgr ', 'kilo.', 'kilos.', 'kg.', 'k.', 'kgr.', 'kilogramos ', 'kilogramos.'],
+            'miligramos': ['mg ', 'miligramo ', 'miligramos ', 'mgr ', 'mg.', 'mgr.', 'miligramos.', 'miligramo.'],
+            'gramos': ['gramos ', 'gr ', 'g ', 'gram ', 'grams ', 'gr.', 'g.', 'gram.', 'grams.', 'gramos.'],
+            'litros': ['litro ', 'litros ', 'l ', 'lt ', 'ltr ', 'ltrs ', 'l.', 'lt.', 'ltr.', 'ltrs.', 'litros.', 'litro.'],
+            'mililitros': ['mililitro ', 'mililitros ', 'ml ', 'mltr ', 'mltrs ', 'ml.', 'mltr.', 'mltrs.'],        
+            'piezas': ['pieza ', 'piezas ', 'unidad ', 'unidades ', 'pz ', 'pza ', 'pz.', 'pza.', 'pieza.', 'piezas.', 'unidad.', 'unidades.', 'pz.', 'pza.'],
+            'tazas': ['taza ', 'tazas ', 'tza ', 'tz ', 'cup ', 'cups ', 'tza.', 'tz.', 'taza.', 'tazas.', 'tza.', 'tz.', 'cup.', 'cups.'],
+            'cucharadas': ['cucharada ', 'cucharadas ', 'cuch ', 'cda ', 'cdas ', 'cuch.', 'cda.', 'cdas.', 'tbsp.','cucharada.', 'cucharadas.', 'cuch.', 'cda.', 'cdas.','tbsp.'],
+            'cucharaditas': ['cucharadita ', 'cucharaditas ', 'cdta ', 'cdtas ', 'cdta.', 'cdtas.', 'tsp ', 'tsp.', 'cucharadita.', 'cucharaditas.']
+            
         }
 
         self.stopwords = ["el", "para", "con", "en", ",", "contra",
