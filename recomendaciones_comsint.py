@@ -566,7 +566,7 @@ class Recomendador():
         print('Precisión promedio aprox. = ', round(np.mean(sum_error)*100,2),'%')
         return
 
-    def CargarNumpyRecetas(self, basedir, NUM_RECETAS, EMB_SIZE, verbose=True):
+    def CargarNumpyRecetas(self, NUM_RECETAS, EMB_SIZE, verbose=True):
         """
         Carga los arreglos X e Y desde archivos tipo npy (NumPy).
         Utiliza los parámetros para armar el nombre del archivo a buscar.
@@ -582,8 +582,8 @@ class Recomendador():
         x = np.array([])
         y = np.array([])
 
-        archivoX = basedir.strip() + str(NUM_RECETAS) + '_recetas_random_EMBED-'+ str(EMB_SIZE) +'_DATA_X.npy'
-        archivoY = basedir.strip() + str(NUM_RECETAS) + '_recetas_random_EMBED-'+ str(EMB_SIZE) +'_DATA_Y.npy'
+        archivoX = self.basedir + 'datasets/numpy/' + str(NUM_RECETAS) + '_recetas_random_EMBED-'+ str(EMB_SIZE) +'_DATA_X.npy'
+        archivoY = self.basedir + 'datasets/numpy/' + str(NUM_RECETAS) + '_recetas_random_EMBED-'+ str(EMB_SIZE) +'_DATA_Y.npy'
         check_fileX = os.path.isfile(archivoX) 
         check_fileY = os.path.isfile(archivoY)
 
@@ -599,11 +599,11 @@ class Recomendador():
                 if not check_fileY: print(archivoY, 'no existe o está corrupto.')        
         return x, y
 
-    def EntrenarModelo(self, df_nutricionales='datasets/nutricion.csv', 
+    def EntrenarModelo(self, df_nutricionales='nutricion.csv', 
                        min_ingredientes=5, max_ingredientes=10,
                        batch_size = 8,
                        epochs = 20,
-                       version =2,
+                       version =2, kernels=16,
                        verbose=True, save=True, savenumpy=False):
         """
         Entrenar el modelo de cálculo de información nutricional
@@ -621,10 +621,10 @@ class Recomendador():
         """
 
         # Cargar los arrays de disco
-        x, y = self.CargarNumpyRecetas('datasets/numpy/', self.NUM_RECETAS, self.EMB_SIZE, verbose=verbose)
+        x, y = self.CargarNumpyRecetas(self.basedir + 'datasets/numpy/' , self.NUM_RECETAS, self.EMB_SIZE, verbose=verbose)
 
         if len(x)== 0 or len(y)==0:
-            dataset_entrenamiento = self.generar_dataset_entrenamiento(df_nutricionales=df_nutricionales,
+            dataset_entrenamiento = self.generar_dataset_entrenamiento(df_nutricionales=self.basedir+'datasets/'+df_nutricionales,
                                                                 numero_recetas=self.NUM_RECETAS, 
                                                                 min_ingredientes=min_ingredientes, 
                                                                 max_ingredientes=max_ingredientes)
@@ -640,11 +640,11 @@ class Recomendador():
         test_dataset = tf.data.Dataset.from_tensor_slices((x_test, y_test)).batch(batch_size)
 
         self.modeloCNN = self.GenerarModeloRegresionCNN(input_shape=(x_train.shape[1]), 
-                                                        emb_size=self.EMB_SIZE, 
+                                                        emb_size=self.EMB_SIZE, kernels=kernels,
                                                         numero_salidas=y_train.shape[1])
 
         self.modeloCNN.compile(Adam(learning_rate=1e-4), loss="mean_absolute_error", metrics=['mae'])
-        #if (verbose): self.modeloCNN.summary()
+        if (verbose): self.modeloCNN.summary()
 
         archivoC = self.basedir + 'Modelos/Modelo_Nut_FV_DistilBERT_0'+str(version)+'_EMBED-'+ str(self.EMB_SIZE) +'_CNN.h5'
 
