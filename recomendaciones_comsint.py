@@ -38,7 +38,7 @@ class Recomendador():
     EMB_SIZE = 512
     VOCAB_SIZE = 768
     INFO_COLS = ['kcal','carbohydrate', 'protein', 'total_fat', 'sugars', 'fiber']
-
+    basedir = ''
 
     def __init__(self,
                  fuente='recetas.csv',
@@ -97,9 +97,9 @@ class Recomendador():
         # Dataframes:
         self.DF_RecetasFiltradas = None
 
-        if (fuente != ''): self.df_recetario = pd.read_csv(fuente, encoding=encoding)
-        if (nutricion != ''): self.df_nutricion = pd.read_csv(nutricion, encoding=encoding)
-        if (canasta != ''): self.df_canasta = pd.read_csv(canasta, encoding=encoding)
+        if (fuente != ''): self.df_recetario = pd.read_csv(self.basedir + 'datasets/' + fuente, encoding=encoding)
+        if (nutricion != ''): self.df_nutricion = pd.read_csv(self.basedir + 'datasets/' + nutricion, encoding=encoding)
+        if (canasta != ''): self.df_canasta = pd.read_csv(self.basedir + 'datasets/' + canasta, encoding=encoding)
 
         
 
@@ -365,7 +365,7 @@ class Recomendador():
             dataset = generar_dataset_entrenamiento(numero_recetas=1000, min_ingredientes=5, max_ingredientes=10)
         """
 
-        df = pd.read_csv(df_nutricionales, encoding=encoding, usecols=usecols)
+        df = pd.read_csv(self.basedir + 'datasets/' + df_nutricionales, encoding=encoding, usecols=usecols)
         
         print('Generando', numero_recetas,' recetas aleatorias...\n')
         
@@ -463,8 +463,8 @@ class Recomendador():
 
         # Guardar los arrays a disco
         if save:
-            np.save('datasets/numpy/' + str(len(array_recetas)) + '_recetas_random_EMBED-'+ str(max_len) +'_DATA_X', result_x)
-            np.save('datasets/numpy/' + str(len(array_recetas)) + '_recetas_random_EMBED-'+ str(max_len) +'_DATA_Y', result_y)
+            np.save(self.basedir + 'datasets/numpy/' + str(len(array_recetas)) + '_recetas_random_EMBED-'+ str(max_len) +'_DATA_X', result_x)
+            np.save(self.basedir + 'datasets/numpy/' + str(len(array_recetas)) + '_recetas_random_EMBED-'+ str(max_len) +'_DATA_Y', result_y)
 
         return result_x, result_y
 
@@ -518,7 +518,7 @@ class Recomendador():
             x = Flatten()(x)
             output_tensor = Dense(numero_salidas, name='CapaSalida')(x)
 
-            model = Model(inputs=input_tensor, outputs=output_tensor, name="ModeloCNNNut")
+            model = Model(inputs=input_tensor, outputs=output_tensor, name="ModeloCNNNut_"+str(kernels))
             model.build(input_shape)
 
             self.modeloCNN = model
@@ -600,7 +600,8 @@ class Recomendador():
                        min_ingredientes=5, max_ingredientes=10,
                        batch_size = 8,
                        epochs = 20,
-                       verbose=True, save=True):
+                       version =2,
+                       verbose=True, save=True, savenumpy=False):
         """
         Entrenar el modelo de cálculo de información nutricional
 
@@ -627,7 +628,7 @@ class Recomendador():
 
             dataset_entrenamiento[np.random.randint(len(dataset_entrenamiento))]      
 
-            x, y = self.calcular_feature_vecs(dataset_entrenamiento, max_len=self.EMB_SIZE, save=False, verbose=verbose)
+            x, y = self.calcular_feature_vecs(dataset_entrenamiento, max_len=self.EMB_SIZE, save=savenumpy, verbose=verbose)
 
         x_train, x_test, y_train, y_test = train_test_split(x, y, train_size=0.8, shuffle=True)
         if (verbose): x_test, x_val, y_test, y_val = train_test_split(x_test, y_test, train_size=0.8)
@@ -642,7 +643,7 @@ class Recomendador():
         self.modeloCNN.compile(Adam(learning_rate=1e-4), loss="mean_absolute_error", metrics=['mae'])
         #if (verbose): self.modeloCNN.summary()
 
-        archivoC = 'Modelos/Modelo_Nut_FV_DistilBERT_02_EMBED-'+ str(self.EMB_SIZE) +'_CNN.h5'
+        archivoC = self.basedir + 'Modelos/Modelo_Nut_FV_DistilBERT_0'+str(version)+'_EMBED-'+ str(self.EMB_SIZE) +'_CNN.h5'
 
         check_fileC = os.path.isfile(archivoC)
 
@@ -663,9 +664,9 @@ class Recomendador():
 
         return self.modeloCNN, history
 
-    def CargarModelo(self, basedir='', emb_size=512):
+    def CargarModelo(self, emb_size=512, version=2):
 
-        archivoC = basedir + 'Modelo_Nut_FV_DistilBERT_02_EMBED-'+ str(emb_size) +'_CNN.h5'
+        archivoC = self.basedir + 'Modelos/Modelo_Nut_FV_DistilBERT_0'+str(version)+'_EMBED-'+ str(emb_size) +'_CNN.h5'
         check_fileC = os.path.isfile(archivoC)
 
         if check_fileC:
