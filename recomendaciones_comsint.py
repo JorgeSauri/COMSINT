@@ -621,7 +621,7 @@ class Recomendador():
         """
 
         # Cargar los arrays de disco
-        x, y = self.CargarNumpyRecetas(self.basedir + 'datasets/numpy/' , self.NUM_RECETAS, self.EMB_SIZE, verbose=verbose)
+        x, y = self.CargarNumpyRecetas(self.NUM_RECETAS, self.EMB_SIZE, verbose=verbose)
 
         if len(x)== 0 or len(y)==0:
             dataset_entrenamiento = self.generar_dataset_entrenamiento(df_nutricionales=self.basedir+'datasets/'+df_nutricionales,
