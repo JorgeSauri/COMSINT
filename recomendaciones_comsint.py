@@ -624,7 +624,7 @@ class Recomendador():
         x, y = self.CargarNumpyRecetas(self.NUM_RECETAS, self.EMB_SIZE, verbose=verbose)
 
         if len(x)== 0 or len(y)==0:
-            dataset_entrenamiento = self.generar_dataset_entrenamiento(df_nutricionales=self.basedir+'datasets/'+df_nutricionales,
+            dataset_entrenamiento = self.generar_dataset_entrenamiento(df_nutricionales=df_nutricionales,
                                                                 numero_recetas=self.NUM_RECETAS, 
                                                                 min_ingredientes=min_ingredientes, 
                                                                 max_ingredientes=max_ingredientes)
