@@ -166,20 +166,19 @@ class Recomendador():
 
         cantidad = 0
 
-        son_ml = False
+        son_subunidades = False
         for medida in self.Medidas:
             for abr in self.Medidas[medida]:
                 index = cadena.find(abr)                               
-                if index > -1 and not son_ml:                                                         
-                    # Para litros y mililitros:
-                    cantidad = cadena.split(abr)[0].strip()
+                if index > -1 and not son_subunidades:                                                                            
+                    cantidad = cadena.split(abr)[0].strip()                   
                     for subcad in cantidad.split(' '):
                         if subcad.isnumeric:
                             try:
-                                cantidad = float(subcad.strip())                                
-                                son_ml = True
+                                cantidad = float(subcad.strip())                                                              
+                                son_subunidades = True
                             except:
-                                if son_ml:
+                                if son_subunidades:
                                     break
                                 else:
                                     cantidad = 0
