@@ -164,13 +164,27 @@ class Recomendador():
         # Por defecto regresaremos la unidad 'pieza'
         result = 'piezas'
 
+        cantidad = 0
+
+        son_ml = False
         for medida in self.Medidas:
             for abr in self.Medidas[medida]:
-                index = cadena.find(abr)
-                if index > -1:
+                index = cadena.find(abr)                               
+                if index > -1 and not son_ml:                                                         
+                    # Para litros y mililitros:
+                    cantidad = cadena.split(abr)[0].strip()
+                    for subcad in cantidad.split(' '):
+                        if subcad.isnumeric:
+                            try:
+                                cantidad = float(subcad.strip())                                
+                                son_ml = True
+                            except:
+                                if son_ml:
+                                    break
+                                else:
+                                    cantidad = 0
                     result = medida
                     break
-
         return result
 
     def separar_ingredientes_spacy(self, cadena):
