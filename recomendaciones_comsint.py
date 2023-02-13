@@ -468,7 +468,7 @@ class Recomendador():
 
         return result_x, result_y
 
-    def GenerarModeloRegresionCNN(self, input_shape, emb_size, numero_salidas):
+    def GenerarModeloRegresionCNN(self, input_shape, emb_size, numero_salidas, kernels=16):
             """
             Devuelve un modelo de CNN 1D para aprender 
             los patrones de ingredientes y sus valores nutricionales.
@@ -500,11 +500,11 @@ class Recomendador():
             reshaped = Reshape(input_shape=(-1,input_shape), target_shape=(emb_size, 768), name='RESHAPING')(input_tensor)
 
             # Capas de convolución
-            cnn = Conv1D(64, 5, activation='relu', name='CONV_1')(reshaped)       
+            cnn = Conv1D(kernels*4, 5, activation='relu', name='CONV_1')(reshaped)       
             cnn = MaxPool1D(pool_size=2, strides=1, padding='valid', name='POOLING_1')(cnn)
-            cnn = Conv1D(64, 3, activation='relu', name='CONV_2')(cnn)
+            cnn = Conv1D(kernels*2, 3, activation='relu', name='CONV_2')(cnn)
             cnn = MaxPool1D(pool_size=2, strides=1, padding='valid', name='POOLING_2')(cnn)
-            cnn = Conv1D(64, 3, activation='relu', name='CONV_3')(cnn)
+            cnn = Conv1D(kernels, 3, activation='relu', name='CONV_3')(cnn)
             cnn = MaxPool1D(pool_size=2, strides=1, padding='valid', name='POOLING_3')(cnn)
             cnn = Dropout(0.2)(cnn)
             cnn = Flatten()(cnn)
