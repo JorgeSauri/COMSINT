@@ -70,7 +70,9 @@ class Recomendador():
             physical_devices = config.list_physical_devices('GPU') 
             config.experimental.set_memory_growth(physical_devices[0], False)        
             tf.config.set_visible_devices([], 'GPU')
+            print(physical_devices)
         except:
+            print('No se encontró hardware GPU')
             pass
 
         self.basedir = basedir
@@ -425,7 +427,7 @@ class Recomendador():
                     i_rand = np.random.randint(len(df))
                     cant_rand = round(np.random.ranf() * np.random.randint(1,10), 2)
                     row_alimento = df.iloc[i_rand]
-                    nombre += str(cant_rand) + 'gr de ' + str(row_alimento['nombre']).replace(',', ' ').strip() + ', '
+                    nombre += str(cant_rand) + 'gr de ' + str(row_alimento['nombre']).lower().replace(',', ' ').strip() + ', '
                     kcal += cant_rand * float(str(row_alimento['kcal']))       
                     gramos_carb += cant_rand * float(str(row_alimento['carbohydrate']).replace(' ', '').split('g')[0])
                     gramos_proteina += cant_rand * float(str(row_alimento['protein']).replace(' ', '').split('g')[0])                               
@@ -467,7 +469,7 @@ class Recomendador():
         """
 
         df = pd.read_csv(self.basedir + 'datasets/' + df_recetas, encoding=encoding)
-        
+        print('Procesando', df_recetas)
         Receta = []
 
         for i_recetas in tqdm(range(len(df))):
@@ -737,7 +739,9 @@ class Recomendador():
                        learning_rate = 1e-4,
                        batch_size = 8,
                        epochs = 20,
-                       version =2, kernels=16,
+                       version =2, kernels=16,                   
+                       step_per_epoch = None,
+                       patience = 4,
                        verbose=True, save=True, savenumpy=False):
         """
         Entrenar el modelo de cálculo de información nutricional
@@ -754,6 +758,7 @@ class Recomendador():
         Devuelve: El modelo entrenado y el history del entrenamiento    
         """
 
+
         # Cargar los arrays de disco
         x, y = self.CargarNumpyRecetas(self.NUM_RECETAS, self.EMB_SIZE, verbose=verbose)
 
@@ -763,7 +768,7 @@ class Recomendador():
                                                                 min_ingredientes=min_ingredientes, 
                                                                 max_ingredientes=max_ingredientes)
 
-            dataset_entrenamiento[np.random.randint(len(dataset_entrenamiento))]      
+            #dataset_entrenamiento[np.random.randint(len(dataset_entrenamiento))]      
 
             x, y = self.calcular_feature_vecs(dataset_entrenamiento, max_len=self.EMB_SIZE, save=savenumpy, verbose=verbose)
 
@@ -771,16 +776,16 @@ class Recomendador():
             x_train, x_test, y_train, y_test = train_test_split(x, y, train_size=0.8, shuffle=True)
         else:
             x_train = x
-            y_train = y
-            df_test = self.procesar_dataset_validacion(df_test)
-            x_test, y_test = self.calcular_feature_vecs(df_test, max_len=self.EMB_SIZE, save=savenumpy, verbose=verbose)
+            y_train = y            
+            array = self.procesar_dataset_validacion(df_test)
+            x_test, y_test = self.calcular_feature_vecs(array, max_len=self.EMB_SIZE, save=savenumpy, verbose=verbose)
             
         if (verbose): 
             if (df_val==''):
                 x_test, x_val, y_test, y_val = train_test_split(x_test, y_test, train_size=0.8)
-            else:
-                df_val = self.procesar_dataset_validacion(df_val)
-                x_val, y_val = self.calcular_feature_vecs(df_val, max_len=self.EMB_SIZE, save=savenumpy, verbose=verbose)
+            else:                
+                array2 = self.procesar_dataset_validacion(df_val)
+                x_val, y_val = self.calcular_feature_vecs(array2, max_len=self.EMB_SIZE, save=savenumpy, verbose=verbose)
                 
         train_dataset = tf.data.Dataset.from_tensor_slices((x_train, y_train)).batch(batch_size)
         test_dataset = tf.data.Dataset.from_tensor_slices((x_test, y_test)).batch(batch_size)
@@ -798,12 +803,27 @@ class Recomendador():
 
         if check_fileC:
             self.modeloCNN = tf.keras.models.load_model(archivoC)
-            
+
+        checkpoint_filepath = self.basedir +'/Modelos/'+ 'Modelo_Nut_FV_DistilBERT_0'+str(version)+'_EMBED-'+ str(self.EMB_SIZE) +'/tmp/checkpoint'
+        model_checkpoint_callback = tf.keras.callbacks.ModelCheckpoint(
+            filepath=checkpoint_filepath,
+            save_weights_only=True,
+            monitor='val_mae',
+            mode='min',
+            save_best_only=True)
+        
+        callbacks = [model_checkpoint_callback, tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=patience)]
+
         history = self.modeloCNN.fit(train_dataset,
                                 batch_size = batch_size,
-                                epochs = epochs,
+                                epochs = epochs,                                
+                                step_per_epoch=step_per_epoch,
                                 validation_data=test_dataset,
+                                callbacks=callbacks,
                                 verbose=verbose)
+
+        # Guarda solo los mejores pesos:
+        self.modeloCNN.load_weights(checkpoint_filepath)
 
         if (save): 
             self.modeloCNN.save(archivoC)
