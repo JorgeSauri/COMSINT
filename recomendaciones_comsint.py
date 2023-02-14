@@ -830,7 +830,7 @@ class Recomendador():
                                 callbacks=callbacks,
                                 verbose=verbose)
 
-        # Guarda solo los mejores pesos:
+        # Carga  los mejores pesos:
         self.modeloCNN.load_weights(checkpoint_filepath)
 
         if (save): 
