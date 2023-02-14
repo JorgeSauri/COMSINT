@@ -740,7 +740,7 @@ class Recomendador():
                        batch_size = 8,
                        epochs = 20,
                        version =2, kernels=16,                   
-                       step_per_epoch = None,
+                       steps_per_epoch = None,
                        patience = 4,
                        verbose=True, save=True, savenumpy=False):
         """
@@ -817,7 +817,7 @@ class Recomendador():
         history = self.modeloCNN.fit(train_dataset,
                                 batch_size = batch_size,
                                 epochs = epochs,                                
-                                step_per_epoch=step_per_epoch,
+                                steps_per_epoch=steps_per_epoch,
                                 validation_data=test_dataset,
                                 callbacks=callbacks,
                                 verbose=verbose)
