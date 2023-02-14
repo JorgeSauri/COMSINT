@@ -426,12 +426,12 @@ class Recomendador():
                     cant_rand = round(np.random.ranf() * np.random.randint(1,10), 2)
                     row_alimento = df.iloc[i_rand]
                     nombre += str(cant_rand) + 'gr de ' + row_alimento['nombre'].replace(',', ' ').strip() + ', '
-                    kcal += cant_rand * float(row_alimento['kcal'])       
-                    gramos_carb += cant_rand * float(row_alimento['carbohydrate'].replace(' ', '').split('g')[0])
-                    gramos_proteina += cant_rand * float(row_alimento['protein'].replace(' ', '').split('g')[0])                               
-                    gramos_grasa += cant_rand * float(row_alimento['total_fat'].replace(' ', '').split('g')[0])
-                    gramos_azucar += cant_rand * float(row_alimento['sugars'].replace(' ', '').split('g')[0])             
-                    gramos_fibra += cant_rand * float(row_alimento['fiber'].replace(' ', '').split('g')[0])            
+                    kcal += cant_rand * float(str(row_alimento['kcal']))       
+                    gramos_carb += cant_rand * float(str(row_alimento['carbohydrate']).replace(' ', '').split('g')[0])
+                    gramos_proteina += cant_rand * float(str(row_alimento['protein']).replace(' ', '').split('g')[0])                               
+                    gramos_grasa += cant_rand * float(str(row_alimento['total_fat']).replace(' ', '').split('g')[0])
+                    gramos_azucar += cant_rand * float(str(row_alimento['sugars']).replace(' ', '').split('g')[0])             
+                    gramos_fibra += cant_rand * float(str(row_alimento['fiber']).replace(' ', '').split('g')[0])            
                         
                 nombre = nombre[:-2]
                 RecetaRandom.append([nombre, round(kcal,2), round(gramos_carb,2), round(gramos_proteina,2), 
