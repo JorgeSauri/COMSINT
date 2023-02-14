@@ -804,7 +804,7 @@ class Recomendador():
         if check_fileC:
             self.modeloCNN = tf.keras.models.load_model(archivoC)
 
-        checkpoint_filepath = self.basedir +'/Modelos/'+ 'Modelo_Nut_FV_DistilBERT_0'+str(version)+'_EMBED-'+ str(self.EMB_SIZE) +'/tmp/checkpoint'
+        checkpoint_filepath = self.basedir +'/Modelos/checkpoints/'+ 'Modelo_Nut_FV_DistilBERT_0'+str(version)+'_EMBED-'+ str(self.EMB_SIZE) 
         model_checkpoint_callback = tf.keras.callbacks.ModelCheckpoint(
             filepath=checkpoint_filepath,
             save_weights_only=True,
