@@ -732,8 +732,9 @@ class Recomendador():
         return x, y
 
     def EntrenarModelo(self, df_nutricionales='nutricion.csv', 
-                       df_test='recetas_test.csv', df_val='recetas_val.csv',
+                       df_test='', df_val='',
                        min_ingredientes=5, max_ingredientes=10,
+                       learning_rate = 1e-4,
                        batch_size = 8,
                        epochs = 20,
                        version =2, kernels=16,
@@ -788,7 +789,7 @@ class Recomendador():
                                                         emb_size=self.EMB_SIZE, kernels=kernels,
                                                         numero_salidas=y_train.shape[1])
 
-        self.modeloCNN.compile(Adam(learning_rate=1e-4), loss="mean_absolute_error", metrics=['mae'])
+        self.modeloCNN.compile(Adam(learning_rate=learning_rate), loss="mean_absolute_error", metrics=['mae'])
         if (verbose): self.modeloCNN.summary()
 
         archivoC = self.basedir + 'Modelos/Modelo_Nut_FV_DistilBERT_0'+str(version)+'_EMBED-'+ str(self.EMB_SIZE) +'_CNN.h5'
