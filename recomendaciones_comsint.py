@@ -443,6 +443,101 @@ class Recomendador():
 
         return result
 
+    def procesar_dataset_validacion(self, 
+                                df_recetas, 
+                                encoding='ISO-8859-1',
+                                col_nombre_receta = 'nombre_del_platillo',
+                                col_nombre_porcion = 'serving_size',
+                                col_nombre_ingredientes = 'ingredientes',                               
+                                usecols=['kcal','carbohydrate', 'protein', 'total_fat', 'sugars', 'fiber']):
+        """
+        Carga un dataframe con recetas y su información nutricional, y regresa un NumPy Array para entrenar un modelo de regresión.
+        Por defecto se toman las columnas: 'nombre', 'kcal','carbohydrate', 'protein', 'total_fat', 'sugars', 'fiber'
+        Que son las columnas del dataframe de nutricion que usamos para entrenar.
+        
+
+        Parámetros:
+        @df_recetas: El dataframe de donde se toma la información nutricional
+        @encoding: El formato de encoding del archivo csv, por ejemplo: UTF-8 o ISO-8859-1
+        @usecols: Los nombres de las columnas del csv que se codificarán en el array
+
+        Devuelve:
+        - Un NumPy Array con dtype=string (Antes de usarlo, es necesario convertir los valores numéricos a float16 o float32 etc.) 
+        
+        """
+
+        df = pd.read_csv(self.basedir + 'datasets/' + df_recetas, encoding=encoding)
+        
+        Receta = []
+
+        for i_recetas in tqdm(range(len(df))):
+                row = df.iloc[i_recetas]               
+                platillo = str(row[col_nombre_receta])
+                ingredientes = str(row[col_nombre_ingredientes])
+                serving_size = str(row[col_nombre_porcion])
+                
+                kcal = float(str(row[usecols[0]]))
+                
+                #carbs
+                try:
+                    gramos_carb = float(str(row[usecols[1]]))
+                except:
+                    cads = str(row[usecols[1]]).split('gr')                   
+                    gramos_carb = 0.0
+                    for c in cads:
+                        if c.strip().isnumeric: 
+                            gramos_carb = float(c)
+                            break                
+                #proteinas
+                try:
+                    gramos_proteina = float(str(row[usecols[2]]))
+                except:
+                    cads = str(row[usecols[2]]).split('gr')                   
+                    gramos_proteina = 0.0
+                    for c in cads:
+                        if c.strip().isnumeric: 
+                            gramos_proteina = float(c)
+                            break      
+                #grasas
+                try:
+                    gramos_grasa = float(str(row[usecols[3]]))
+                except:
+                    cads = str(row[usecols[3]]).split('gr')                   
+                    gramos_grasa = 0.0
+                    for c in cads:
+                        if c.strip().isnumeric: 
+                            gramos_grasa = float(c)
+                            break         
+                #azucares
+                try:
+                    gramos_azucar = float(str(row[usecols[4]]))
+                except:
+                    cads = str(row[usecols[4]]).split('gr')                   
+                    gramos_azucar = 0.0
+                    for c in cads:
+                        if c.strip().isnumeric: 
+                            gramos_azucar = float(c)
+                            break              
+                #fibras
+                try:
+                    gramos_fibra = float(str(row[usecols[5]]))
+                except:
+                    cads = str(row[usecols[5]]).split('gr')                   
+                    gramos_fibra = 0.0
+                    for c in cads:
+                        if c.strip().isnumeric: 
+                            gramos_fibra = float(c)
+                            break            
+               
+                Receta.append([ingredientes, round(kcal,2), round(gramos_carb,2), round(gramos_proteina,2), 
+                                    round(gramos_grasa,2), round(gramos_azucar,2), round(gramos_fibra,2)])
+                
+                
+        result = np.array(Receta)
+
+
+        return result        
+
     def calcular_feature_vecs(self, array_recetas, max_len=128, save=True, verbose=True):
 
         """
@@ -676,14 +771,16 @@ class Recomendador():
         else:
             x_train = x
             y_train = y
+            df_test = self.procesar_dataset_validacion(df_test)
             x_test, y_test = self.calcular_feature_vecs(df_test, max_len=self.EMB_SIZE, save=savenumpy, verbose=verbose)
-        
+            
         if (verbose): 
             if (df_val==''):
                 x_test, x_val, y_test, y_val = train_test_split(x_test, y_test, train_size=0.8)
             else:
+                df_val = self.procesar_dataset_validacion(df_val)
                 x_val, y_val = self.calcular_feature_vecs(df_val, max_len=self.EMB_SIZE, save=savenumpy, verbose=verbose)
-        
+                
         train_dataset = tf.data.Dataset.from_tensor_slices((x_train, y_train)).batch(batch_size)
         test_dataset = tf.data.Dataset.from_tensor_slices((x_test, y_test)).batch(batch_size)
 
