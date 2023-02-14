@@ -637,6 +637,7 @@ class Recomendador():
         return x, y
 
     def EntrenarModelo(self, df_nutricionales='nutricion.csv', 
+                       df_test='recetas_test.csv', df_val='recetas_val.csv',
                        min_ingredientes=5, max_ingredientes=10,
                        batch_size = 8,
                        epochs = 20,
@@ -670,8 +671,18 @@ class Recomendador():
 
             x, y = self.calcular_feature_vecs(dataset_entrenamiento, max_len=self.EMB_SIZE, save=savenumpy, verbose=verbose)
 
-        x_train, x_test, y_train, y_test = train_test_split(x, y, train_size=0.8, shuffle=True)
-        if (verbose): x_test, x_val, y_test, y_val = train_test_split(x_test, y_test, train_size=0.8)
+        if (df_test == ''): #Si no proporcionas un dataframe de test, generarlo:
+            x_train, x_test, y_train, y_test = train_test_split(x, y, train_size=0.8, shuffle=True)
+        else:
+            x_train = x
+            y_train = y
+            x_test, y_test = self.calcular_feature_vecs(df_test, max_len=self.EMB_SIZE, save=savenumpy, verbose=verbose)
+        
+        if (verbose): 
+            if (df_val==''):
+                x_test, x_val, y_test, y_val = train_test_split(x_test, y_test, train_size=0.8)
+            else:
+                x_val, y_val = self.calcular_feature_vecs(df_val, max_len=self.EMB_SIZE, save=savenumpy, verbose=verbose)
         
         train_dataset = tf.data.Dataset.from_tensor_slices((x_train, y_train)).batch(batch_size)
         test_dataset = tf.data.Dataset.from_tensor_slices((x_test, y_test)).batch(batch_size)
