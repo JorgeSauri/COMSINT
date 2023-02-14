@@ -425,7 +425,7 @@ class Recomendador():
                     i_rand = np.random.randint(len(df))
                     cant_rand = round(np.random.ranf() * np.random.randint(1,10), 2)
                     row_alimento = df.iloc[i_rand]
-                    nombre += str(cant_rand) + 'gr de ' + row_alimento['nombre'].replace(',', ' ').strip() + ', '
+                    nombre += str(cant_rand) + 'gr de ' + str(row_alimento['nombre']).replace(',', ' ').strip() + ', '
                     kcal += cant_rand * float(str(row_alimento['kcal']))       
                     gramos_carb += cant_rand * float(str(row_alimento['carbohydrate']).replace(' ', '').split('g')[0])
                     gramos_proteina += cant_rand * float(str(row_alimento['protein']).replace(' ', '').split('g')[0])                               
