@@ -540,7 +540,7 @@ class Recomendador():
 
         return result        
 
-    def calcular_feature_vecs(self, array_recetas, max_len=128, save=True, verbose=True):
+    def calcular_feature_vecs(self, array_recetas, max_len=128, save=True, verbose=True, sufix='_recetas_random'):
 
         """
         Método que recibe un array de recetas con el siguiente formato:
@@ -600,8 +600,8 @@ class Recomendador():
 
         # Guardar los arrays a disco
         if save:
-            np.save(self.basedir + 'datasets/numpy/' + str(len(array_recetas)) + '_recetas_random_EMBED-'+ str(max_len) +'_DATA_X', result_x)
-            np.save(self.basedir + 'datasets/numpy/' + str(len(array_recetas)) + '_recetas_random_EMBED-'+ str(max_len) +'_DATA_Y', result_y)
+            np.save(self.basedir + 'datasets/numpy/' + str(len(array_recetas)) + sufix.strip() + '_EMBED-'+ str(max_len) +'_DATA_X', result_x)
+            np.save(self.basedir + 'datasets/numpy/' + str(len(array_recetas)) + sufix.strip() + '_EMBED-'+ str(max_len) +'_DATA_Y', result_y)
 
         return result_x, result_y
 
@@ -700,7 +700,7 @@ class Recomendador():
         print('Precisión promedio aprox. = ', round(np.mean(sum_error)*100,2),'%')
         return
 
-    def CargarNumpyRecetas(self, NUM_RECETAS, EMB_SIZE, verbose=True):
+    def CargarNumpyRecetas(self, NUM_RECETAS, EMB_SIZE, verbose=True, sufix='_recetas_random'):
         """
         Carga los arreglos X e Y desde archivos tipo npy (NumPy).
         Utiliza los parámetros para armar el nombre del archivo a buscar.
@@ -716,8 +716,8 @@ class Recomendador():
         x = np.array([])
         y = np.array([])
 
-        archivoX = self.basedir + 'datasets/numpy/' + str(NUM_RECETAS) + '_recetas_random_EMBED-'+ str(EMB_SIZE) +'_DATA_X.npy'
-        archivoY = self.basedir + 'datasets/numpy/' + str(NUM_RECETAS) + '_recetas_random_EMBED-'+ str(EMB_SIZE) +'_DATA_Y.npy'
+        archivoX = self.basedir + 'datasets/numpy/' + str(NUM_RECETAS) + sufix.strip() + '_EMBED-'+ str(EMB_SIZE) +'_DATA_X.npy'
+        archivoY = self.basedir + 'datasets/numpy/' + str(NUM_RECETAS) + sufix.strip() + '_EMBED-'+ str(EMB_SIZE) +'_DATA_Y.npy'
         check_fileX = os.path.isfile(archivoX) 
         check_fileY = os.path.isfile(archivoY)
 
@@ -776,16 +776,20 @@ class Recomendador():
             x_train, x_test, y_train, y_test = train_test_split(x, y, train_size=0.8, shuffle=True)
         else:
             x_train = x
-            y_train = y            
-            array = self.procesar_dataset_validacion(df_test)
-            x_test, y_test = self.calcular_feature_vecs(array, max_len=self.EMB_SIZE, save=savenumpy, verbose=verbose)
+            y_train = y 
+            x_test, y_test = self.CargarNumpyRecetas(self.NUM_RECETAS, self.EMB_SIZE, verbose=verbose, sufix='_TEST') 
+            if (len(x_test)==0 or len(y_test==0)):          
+                array = self.procesar_dataset_validacion(df_test)
+                x_test, y_test = self.calcular_feature_vecs(array, max_len=self.EMB_SIZE, save=True, verbose=verbose, sufix='_TEST')
             
         if (verbose): 
             if (df_val==''):
                 x_test, x_val, y_test, y_val = train_test_split(x_test, y_test, train_size=0.8)
-            else:                
-                array2 = self.procesar_dataset_validacion(df_val)
-                x_val, y_val = self.calcular_feature_vecs(array2, max_len=self.EMB_SIZE, save=savenumpy, verbose=verbose)
+            else:      
+                x_val, y_val = self.CargarNumpyRecetas(self.NUM_RECETAS, self.EMB_SIZE, verbose=verbose, sufix='_VAL') 
+                if (len(x_val)==0 or len(y_val==0)):           
+                    array2 = self.procesar_dataset_validacion(df_val)
+                    x_val, y_val = self.calcular_feature_vecs(array2, max_len=self.EMB_SIZE, save=True, verbose=verbose, sufix='_VAL')
                 
         train_dataset = tf.data.Dataset.from_tensor_slices((x_train, y_train)).batch(batch_size)
         test_dataset = tf.data.Dataset.from_tensor_slices((x_test, y_test)).batch(batch_size)
@@ -805,6 +809,10 @@ class Recomendador():
             self.modeloCNN = tf.keras.models.load_model(archivoC)
 
         checkpoint_filepath = self.basedir +'/Modelos/checkpoints/'+ 'Modelo_Nut_FV_DistilBERT_0'+str(version)+'_EMBED-'+ str(self.EMB_SIZE) 
+        
+        if not os.path.isdir(checkpoint_filepath):
+            os.makedirs(checkpoint_filepath)
+
         model_checkpoint_callback = tf.keras.callbacks.ModelCheckpoint(
             filepath=checkpoint_filepath,
             save_weights_only=True,
