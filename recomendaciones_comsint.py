@@ -816,7 +816,7 @@ class Recomendador():
         model_checkpoint_callback = tf.keras.callbacks.ModelCheckpoint(
             filepath=checkpoint_filepath,
             save_weights_only=True,
-            monitor='val_mae',
+            monitor='mae',
             mode='min',
             save_best_only=True)
         
