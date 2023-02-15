@@ -817,7 +817,10 @@ class Recomendador():
             save_weights_only=True,
             monitor='mae',
             mode='auto',
-            save_best_only=True)
+            save_best_only=True,
+            save_freq='epoch',  # Guarda un checkpoint al final de cada época
+            period=10  # Guarda un checkpoint cada 5 épocas            
+            )
         
         callbacks = [model_checkpoint_callback]
 
