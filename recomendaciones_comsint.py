@@ -379,9 +379,8 @@ class Recomendador():
         feature_vec = pooled_output.numpy().squeeze()
         return feature_vec      
 
-    def generar_dataset_entrenamiento(self, 
-                                    df_nutricionales = '',
-                                    df_precios = '', 
+    def generar_dataset_entrenamiento_nut(self, 
+                                    df_nutricionales = '',                                   
                                     encoding='ISO-8859-1',
                                     usecols=['nombre', 'kcal','carbohydrate', 'protein', 'total_fat', 'sugars', 'fiber'],
                                     min_ingredientes = 1,
@@ -407,7 +406,7 @@ class Recomendador():
         
 
         Ejemplo:
-            dataset = generar_dataset_entrenamiento(numero_recetas=1000, min_ingredientes=5, max_ingredientes=10)
+            dataset = generar_dataset_entrenamiento_nut(numero_recetas=1000, min_ingredientes=5, max_ingredientes=10)
         """
 
         if df_nutricionales == '':
@@ -415,10 +414,6 @@ class Recomendador():
         else:
             df = pd.read_csv(self.basedir + 'datasets/' + df_nutricionales, encoding=encoding, usecols=usecols)
         
-        if df_precios == '':
-            df_precios = self.df_precios
-        else:
-            df_precios = pd.read_csv(self.basedir + 'datasets/' + df_precios, encoding=encoding)
         
         print('Generando', numero_recetas,' recetas aleatorias...\n')
         
@@ -446,9 +441,7 @@ class Recomendador():
                     gramos_grasa += cant_rand * (float(str(row_alimento['total_fat']).replace(' ', '').split('g')[0]) / 100)
                     gramos_azucar += cant_rand * (float(str(row_alimento['sugars']).replace(' ', '').split('g')[0]) / 100)             
                     gramos_fibra += cant_rand * (float(str(row_alimento['fiber']).replace(' ', '').split('g')[0]) / 100)            
-
-                    #Ahora calculamos el costo   
-
+          
 
                 nombre = nombre[:-2]
                 RecetaRandom.append([nombre, round(kcal,2), round(gramos_carb,2), round(gramos_proteina,2), 
@@ -777,7 +770,7 @@ class Recomendador():
         x, y = self.CargarNumpyRecetas(self.NUM_RECETAS, self.EMB_SIZE, verbose=verbose)
 
         if len(x)== 0 or len(y)==0:
-            dataset_entrenamiento = self.generar_dataset_entrenamiento(df_nutricionales=df_nutricionales,
+            dataset_entrenamiento = self.generar_dataset_entrenamiento_nut(df_nutricionales=df_nutricionales,
                                                                 numero_recetas=self.NUM_RECETAS, 
                                                                 min_ingredientes=min_ingredientes, 
                                                                 max_ingredientes=max_ingredientes)
