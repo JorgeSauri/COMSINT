@@ -740,8 +740,7 @@ class Recomendador():
                        batch_size = 8,
                        epochs = 20,
                        version =2, kernels=16,                   
-                       steps_per_epoch = None,
-                       patience = 4,
+                       steps_per_epoch = None,                       
                        verbose=True, save=True, savenumpy=False):
         """
         Entrenar el modelo de cálculo de información nutricional
@@ -808,7 +807,7 @@ class Recomendador():
         if check_fileC:
             self.modeloCNN = tf.keras.models.load_model(archivoC)
 
-        checkpoint_filepath = self.basedir +'/Modelos/checkpoints/'+ 'Modelo_Nut_FV_DistilBERT_0'+str(version)+'_EMBED-'+ str(self.EMB_SIZE) 
+        checkpoint_filepath = self.basedir +'/Modelos/checkpoints/'+ 'Modelo_Nut_FV_DistilBERT_0'+str(version)+'_EMBED-'+ str(self.EMB_SIZE) + '/'
         
         if not os.path.isdir(checkpoint_filepath):
             os.makedirs(checkpoint_filepath)
@@ -817,10 +816,10 @@ class Recomendador():
             filepath=checkpoint_filepath,
             save_weights_only=True,
             monitor='mae',
-            mode='min',
+            mode='auto',
             save_best_only=True)
         
-        callbacks = [model_checkpoint_callback, tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=patience)]
+        callbacks = [model_checkpoint_callback]
 
         history = self.modeloCNN.fit(train_dataset,
                                 batch_size = batch_size,
