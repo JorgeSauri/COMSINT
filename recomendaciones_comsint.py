@@ -45,6 +45,7 @@ class Recomendador():
                  fuente='recetas.csv',
                  nutricion='nutricion.csv',
                  canasta='canasta_basica.csv',
+                 precios='lista_precios_profeco_2022.csv',
                  encoding="ISO-8859-1"):
         """
             La clase Recomendador carga los datasets: fuente, nutricion y canasta; e inicializa los parámetros
@@ -105,6 +106,7 @@ class Recomendador():
         if (fuente != ''): self.df_recetario = pd.read_csv(self.basedir + 'datasets/' + fuente, encoding=encoding)
         if (nutricion != ''): self.df_nutricion = pd.read_csv(self.basedir + 'datasets/' + nutricion, encoding=encoding)
         if (canasta != ''): self.df_canasta = pd.read_csv(self.basedir + 'datasets/' + canasta, encoding=encoding)
+        if (precios != ''): self.df_precios = pd.read_csv(self.basedir + 'datasets/' + precios, encoding=encoding)
 
         
 
@@ -378,7 +380,8 @@ class Recomendador():
         return feature_vec      
 
     def generar_dataset_entrenamiento(self, 
-                                    df_nutricionales='nutricion.csv', 
+                                    df_nutricionales = '',
+                                    df_precios = '', 
                                     encoding='ISO-8859-1',
                                     usecols=['nombre', 'kcal','carbohydrate', 'protein', 'total_fat', 'sugars', 'fiber'],
                                     min_ingredientes = 1,
@@ -407,7 +410,15 @@ class Recomendador():
             dataset = generar_dataset_entrenamiento(numero_recetas=1000, min_ingredientes=5, max_ingredientes=10)
         """
 
-        df = pd.read_csv(self.basedir + 'datasets/' + df_nutricionales, encoding=encoding, usecols=usecols)
+        if df_nutricionales == '':
+            df = self.df_nutricion
+        else:
+            df = pd.read_csv(self.basedir + 'datasets/' + df_nutricionales, encoding=encoding, usecols=usecols)
+        
+        if df_precios == '':
+            df_precios = self.df_precios
+        else:
+            df_precios = pd.read_csv(self.basedir + 'datasets/' + df_precios, encoding=encoding)
         
         print('Generando', numero_recetas,' recetas aleatorias...\n')
         
@@ -428,13 +439,17 @@ class Recomendador():
                     cant_rand = round(np.random.ranf() * np.random.randint(1,10), 2)
                     row_alimento = df.iloc[i_rand]
                     nombre += str(cant_rand) + 'gr de ' + str(row_alimento['nombre']).lower().replace(',', ' ').strip() + ', '
-                    kcal += cant_rand * float(str(row_alimento['kcal']))       
-                    gramos_carb += cant_rand * float(str(row_alimento['carbohydrate']).replace(' ', '').split('g')[0])
-                    gramos_proteina += cant_rand * float(str(row_alimento['protein']).replace(' ', '').split('g')[0])                               
-                    gramos_grasa += cant_rand * float(str(row_alimento['total_fat']).replace(' ', '').split('g')[0])
-                    gramos_azucar += cant_rand * float(str(row_alimento['sugars']).replace(' ', '').split('g')[0])             
-                    gramos_fibra += cant_rand * float(str(row_alimento['fiber']).replace(' ', '').split('g')[0])            
-                        
+                    # Como el dataset de nutrición viene en porciones de 100g cada medida
+                    kcal += cant_rand * (float(str(row_alimento['kcal']))/100)       
+                    gramos_carb += cant_rand * (float(str(row_alimento['carbohydrate']).replace(' ', '').split('g')[0]) / 100)
+                    gramos_proteina += cant_rand * (float(str(row_alimento['protein']).replace(' ', '').split('g')[0]) / 100)                               
+                    gramos_grasa += cant_rand * (float(str(row_alimento['total_fat']).replace(' ', '').split('g')[0]) / 100)
+                    gramos_azucar += cant_rand * (float(str(row_alimento['sugars']).replace(' ', '').split('g')[0]) / 100)             
+                    gramos_fibra += cant_rand * (float(str(row_alimento['fiber']).replace(' ', '').split('g')[0]) / 100)            
+
+                    #Ahora calculamos el costo   
+
+
                 nombre = nombre[:-2]
                 RecetaRandom.append([nombre, round(kcal,2), round(gramos_carb,2), round(gramos_proteina,2), 
                                     round(gramos_grasa,2), round(gramos_azucar,2), round(gramos_fibra,2)])
@@ -806,28 +821,7 @@ class Recomendador():
 
         if check_fileC:
             self.modeloCNN = tf.keras.models.load_model(archivoC)
-
-        # checkpoint_filepath = self.basedir +'Modelos/checkpoints/'+ 'Modelo_Nut_FV_DistilBERT_0'+str(version)+'_EMBED-'+ str(self.EMB_SIZE) + '/'
-        # print('Carpeta de checkpoints:', checkpoint_filepath)
-
-
-        # if not os.path.exists(checkpoint_filepath):
-        #     print('No existe', checkpoint_filepath)
-        #     print('Creando carpeta de checkpoints en', checkpoint_filepath)
-        #     os.makedirs(checkpoint_filepath)
        
-
-        # model_checkpoint_callback = tf.keras.callbacks.ModelCheckpoint(
-        #     filepath=checkpoint_filepath,
-        #     save_weights_only=True,
-        #     monitor='mae',
-        #     mode='auto',
-        #     save_best_only=True,
-        #     save_freq=10,  # Guarda un checkpoint al final de cada época                  
-        #     ) 
-        
-        # callbacks = [model_checkpoint_callback]
-
         history = self.modeloCNN.fit(train_dataset,
                                 batch_size = batch_size,
                                 epochs = epochs,                                
@@ -836,8 +830,6 @@ class Recomendador():
                                 #callbacks=callbacks,
                                 verbose=verbose)
 
-        # Carga  los mejores pesos:
-        #self.modeloCNN.load_weights(checkpoint_filepath)
 
         if (save): 
             self.modeloCNN.save(archivoC)
