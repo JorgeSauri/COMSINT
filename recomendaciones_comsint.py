@@ -807,10 +807,15 @@ class Recomendador():
         if check_fileC:
             self.modeloCNN = tf.keras.models.load_model(archivoC)
 
-        checkpoint_filepath = self.basedir +'/Modelos/checkpoints/'+ 'Modelo_Nut_FV_DistilBERT_0'+str(version)+'_EMBED-'+ str(self.EMB_SIZE) + '/'
-        
-        if not os.path.isdir(checkpoint_filepath):
+        checkpoint_filepath = self.basedir +'Modelos/checkpoints/'+ 'Modelo_Nut_FV_DistilBERT_0'+str(version)+'_EMBED-'+ str(self.EMB_SIZE) + '/'
+        print('Carpeta de checkpoints:', checkpoint_filepath)
+
+
+        if not os.path.exists(checkpoint_filepath):
+            print('No existe', checkpoint_filepath)
+            print('Creando carpeta de checkpoints en', checkpoint_filepath)
             os.makedirs(checkpoint_filepath)
+       
 
         model_checkpoint_callback = tf.keras.callbacks.ModelCheckpoint(
             filepath=checkpoint_filepath,
@@ -818,8 +823,7 @@ class Recomendador():
             monitor='mae',
             mode='auto',
             save_best_only=True,
-            save_freq='epoch',  # Guarda un checkpoint al final de cada época
-            period=10  # Guarda un checkpoint cada 5 épocas            
+            save_freq=10,  # Guarda un checkpoint al final de cada época                  
             )
         
         callbacks = [model_checkpoint_callback]
