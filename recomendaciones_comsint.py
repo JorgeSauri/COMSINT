@@ -444,8 +444,8 @@ class Recomendador():
           
 
                 nombre = nombre[:-2]
-                RecetaRandom.append([nombre, round(kcal,2), round(gramos_carb,2), round(gramos_proteina,2), 
-                                    round(gramos_grasa,2), round(gramos_azucar,2), round(gramos_fibra,2)])
+                RecetaRandom.append([nombre, kcal, gramos_carb, gramos_proteina, 
+                                    gramos_grasa, gramos_azucar, gramos_fibra])
                 
                 
         result = np.array(RecetaRandom)
