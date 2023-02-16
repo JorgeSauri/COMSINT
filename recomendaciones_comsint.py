@@ -778,10 +778,12 @@ class Recomendador():
 
         if df_training != '':
             npy_training = pd.read_csv(self.basedir + 'datasets/' + df_training, encoding = "ISO-8859-1").to_numpy()           
+            print('Cargado dataset de entrenamiento:', self.basedir + 'datasets/' + df_training)
             recetas_train = []
             self.NUM_RECETAS = len(npy_training)
+            print(self.NUM_RECETAS, 'recetas encontradas.')
             for i in range(len(npy_training)):
-                row = array[i]
+                row = npy_training[i]
                 nombre = row[1]
                 kcal = float(row[2])
                 gramos_carb = float(row[3])
