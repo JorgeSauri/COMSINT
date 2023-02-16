@@ -988,13 +988,41 @@ class Recomendador():
                                                  self.EMB_SIZE, verbose=verbose)
 
         for i in range(len(nutricion)):
-            row = nutricion[i]               
-            Calorias.append(round(float(row[self.INFO_COLS[0]]),2))
-            Carbs.append(round(float(row[self.INFO_COLS[1]]),2))
-            Proteinas.append(round(float(row[self.INFO_COLS[2]]),2))
-            Grasas.append(round(float(row[self.INFO_COLS[3]]),2))
-            Azucares.append(round(float(row[self.INFO_COLS[4]]),2))
-            Fibras.append(round(float(row[self.INFO_COLS[5]]),2))
+            row = nutricion[i]   
+
+            kcal = round(float(row[self.INFO_COLS[0]]),2)            
+            Calorias.append(kcal)
+
+            carbs = round(float(row[self.INFO_COLS[1]]),2)
+            Carbs.append(carbs)
+            
+            prots = round(float(row[self.INFO_COLS[2]]),2)
+            Proteinas.append(prots)
+            
+            grasas = round(float(row[self.INFO_COLS[3]]),2)
+            Grasas.append(grasas)
+            
+            sugars = round(float(row[self.INFO_COLS[4]]),2)
+            Azucares.append(sugars)
+            
+            fibras = round(float(row[self.INFO_COLS[5]]),2)
+            Fibras.append(fibras)
+
+            # Calificar el platillo de acuerdo a:
+            # Carb% = (45%-65%) 
+            # Prot% = (10%-35%)
+            # Grasa% = (20%-35%)
+
+            # Fuente:
+            # Manore, M.M. Exercise and the institute of medicine recommendations for nutrition. 
+            # Curr Sports Med Rep 4, 193–198 (2005). 
+            # https://link.springer.com/article/10.1007/s11932-005-0034-4 
+
+            # Calcular los porcentajes:
+            #pcarb = 
+
+
+
                             
         dfFiltrados['kcal'] = Calorias
         dfFiltrados['proteinas_gr'] = Proteinas
