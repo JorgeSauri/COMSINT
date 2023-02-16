@@ -40,6 +40,19 @@ class Recomendador():
     INFO_COLS = ['kcal','carbohydrate', 'protein', 'total_fat', 'sugars', 'fiber']
     basedir = ''
 
+    # Calificar el platillo de acuerdo a:
+    # Carb% = (45%-65%)  
+    # Prot% = (10%-35%)   
+    # Grasa% = (20%-35%)  
+    # Fuente:
+    # Manore, M.M. Exercise and the institute of medicine recommendations for nutrition. 
+    # Curr Sports Med Rep 4, 193–198 (2005). 
+    # https://link.springer.com/article/10.1007/s11932-005-0034-4 
+
+    RANGO_CARBOHIDRATOS = range(45, 66) 
+    RANGO_PROTEINAS = range(10, 36)
+    RANGO_GRASAS = range(20, 36) 
+
     def __init__(self,
                  basedir = '',
                  fuente='recetas.csv',
@@ -1010,25 +1023,21 @@ class Recomendador():
             Fibras.append(fibras)
 
             # Calificar el platillo de acuerdo a:
-            # Carb% = (45%-65%) 
-            # Prot% = (10%-35%)
-            # Grasa% = (20%-35%)
-
-            # Fuente:
-            # Manore, M.M. Exercise and the institute of medicine recommendations for nutrition. 
-            # Curr Sports Med Rep 4, 193–198 (2005). 
-            # https://link.springer.com/article/10.1007/s11932-005-0034-4 
+            # RANGO_CARBOHIDRATOS
+            # RANGO_PROTEINAS
+            # RANGO_GRASAS
 
             # Calcular los porcentajes:
             # grasas = 9 kcal x gramo, carbs = 4 kcal * gramo, proteinas = 4 kcal * gramo
+
             p_carb = round(((carbs*4) / kcal)*100)
             p_prot = round(((prots*4) / kcal)*100)
             p_grasas = round(((grasas*4) / kcal)*100)
             
             calificacion_receta = 0.0
-            if p_carb in range(45, 66): calificacion_receta += 1
-            if p_prot in range(10, 36): calificacion_receta += 1
-            if p_grasas in range(20, 36): calificacion_receta += 1
+            if p_carb in self.RANGO_CARBOHIDRATOS: calificacion_receta += 1
+            if p_prot in self.RANGO_PROTEINAS: calificacion_receta += 1
+            if p_grasas in self.RANGO_GRASAS: calificacion_receta += 1
 
             calificacion_receta = round(calificacion_receta / 3, 1)     
             Califs.append(calificacion_receta)     
