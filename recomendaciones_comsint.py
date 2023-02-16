@@ -750,7 +750,7 @@ class Recomendador():
                 if not check_fileY: print(archivoY, 'no existe o está corrupto.')        
         return x, y
 
-    def EntrenarModelo(self, df_nutricionales='nutricion.csv', 
+    def EntrenarModelo(self, df_nutricionales='nutricion.csv', df_training='',
                        df_test='', df_val='',
                        min_ingredientes=5, max_ingredientes=10,
                        min_gramos=5, max_gramos=50,
@@ -765,6 +765,7 @@ class Recomendador():
 
         Parámetros:
         @df_nutricionales: El dataset de valores nutricionales con el que se arma el dataset de entrenamiento
+        @df_training: Si hay un dataset en csv para entrenar, lo utiliza en vez de generar recetas ficticias
         @min_ingredientes: Mínimo de ingredientes a utilizar para el generador de recetas de entrenamiento
         @max_ingredientes: Máximo de ingredientes a utilizar para el generador de recetas de entrenamiento
         @batch_size: El tamaño de los lotes de entrenamiento
@@ -775,20 +776,44 @@ class Recomendador():
         Devuelve: El modelo entrenado y el history del entrenamiento    
         """
 
+        if df_training != '':
+            npy_training = pd.read_csv(self.basedir + 'datasets/' + df_training, encoding = "ISO-8859-1").to_numpy()           
+            recetas_train = []
+            for i in range(len(npy_training)):
+                row = array[i]
+                nombre = row[1]
+                kcal = float(row[2])
+                gramos_carb = float(row[3])
+                gramos_proteina = float(row[4])
+                gramos_grasa = float(row[5])
+                gramos_azucar = float(row[6])
+                gramos_fibra = float(row[7])
 
-        # Cargar los arrays de disco
-        x, y = self.CargarNumpyRecetas(self.NUM_RECETAS, self.EMB_SIZE, verbose=verbose)
+                recetas_train.append([nombre, round(kcal,2), 
+                                    round(gramos_carb,2), 
+                                    round(gramos_proteina,2), 
+                                    round(gramos_grasa,2), 
+                                    round(gramos_azucar,2), 
+                                    round(gramos_fibra,2)])
 
-        if len(x)== 0 or len(y)==0:
-            dataset_entrenamiento = self.generar_dataset_entrenamiento_nut(df_nutricionales=df_nutricionales,
-                                                                numero_recetas=self.NUM_RECETAS, 
-                                                                min_ingredientes=min_ingredientes, 
-                                                                max_ingredientes=max_ingredientes,
-                                                                min_gramos=min_gramos, max_gramos=max_gramos)
+            recetas_train = np.array(recetas_train)             
+            x, y = self.calcular_feature_vecs(recetas_train, max_len=self.EMB_SIZE, save=savenumpy, verbose=verbose)
 
-            #dataset_entrenamiento[np.random.randint(len(dataset_entrenamiento))]      
+        else:
 
-            x, y = self.calcular_feature_vecs(dataset_entrenamiento, max_len=self.EMB_SIZE, save=savenumpy, verbose=verbose)
+            # Cargar los arrays de disco
+            x, y = self.CargarNumpyRecetas(self.NUM_RECETAS, self.EMB_SIZE, verbose=verbose)
+
+            if len(x)== 0 or len(y)==0:
+                dataset_entrenamiento = self.generar_dataset_entrenamiento_nut(df_nutricionales=df_nutricionales,
+                                                                    numero_recetas=self.NUM_RECETAS, 
+                                                                    min_ingredientes=min_ingredientes, 
+                                                                    max_ingredientes=max_ingredientes,
+                                                                    min_gramos=min_gramos, max_gramos=max_gramos)
+
+                #dataset_entrenamiento[np.random.randint(len(dataset_entrenamiento))]      
+
+                x, y = self.calcular_feature_vecs(dataset_entrenamiento, max_len=self.EMB_SIZE, save=savenumpy, verbose=verbose)
 
         if (df_test == ''): #Si no proporcionas un dataframe de test, generarlo:
             x_train, x_test, y_train, y_test = train_test_split(x, y, train_size=0.8, shuffle=True)
