@@ -322,7 +322,7 @@ class Recomendador():
             if similaridad > similitud:
                 Platillos.append(row[col_title])
                 Ingredientes.append(row[col_ingredientes])
-                Sim.append(similaridad)
+                Sim.append(round(similaridad,1))
 
         dfFiltrados = pd.DataFrame(list(zip(Platillos, Ingredientes, Sim)),
                                    columns=['nombre_del_platillo', 'ingredientes', 'similitud'])
@@ -1030,7 +1030,7 @@ class Recomendador():
             if p_prot in range(10, 36): calificacion_receta += 1
             if p_grasas in range(20, 36): calificacion_receta += 1
 
-            calificacion_receta = calificacion_receta / 3      
+            calificacion_receta = round(calificacion_receta / 3, 1)     
             Califs.append(calificacion_receta)     
                             
         dfFiltrados['kcal'] = Calorias
