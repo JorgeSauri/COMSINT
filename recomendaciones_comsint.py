@@ -784,13 +784,13 @@ class Recomendador():
             print(self.NUM_RECETAS, 'recetas encontradas.')
             for i in range(len(npy_training)):
                 row = npy_training[i]
-                nombre = row[1]
-                kcal = float(row[2])
-                gramos_carb = float(row[3])
-                gramos_proteina = float(row[4])
-                gramos_grasa = float(row[5])
-                gramos_azucar = float(row[6])
-                gramos_fibra = float(row[7])
+                nombre = row[2]
+                kcal = float(row[3])
+                gramos_carb = float(row[4])
+                gramos_proteina = float(row[5])
+                gramos_grasa = float(row[6])
+                gramos_azucar = float(row[7])
+                gramos_fibra = float(row[8])
 
                 recetas_train.append([nombre, round(kcal,2), 
                                     round(gramos_carb,2), 
