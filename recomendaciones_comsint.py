@@ -981,6 +981,7 @@ class Recomendador():
         Grasas = []
         Fibras = []
         Azucares = []
+        Califs = []
 
         recetas = [str(dfFiltrados.iloc[i][col_ingredientes]).strip() for i in range(len(dfFiltrados))]
 
@@ -1019,17 +1020,26 @@ class Recomendador():
             # https://link.springer.com/article/10.1007/s11932-005-0034-4 
 
             # Calcular los porcentajes:
-            #pcarb = 
+            # grasas = 9 kcal x gramo, carbs = 4 kcal * gramo, proteinas = 4 kcal * gramo
+            p_carb = round((carbs*4) / kcal,2)
+            p_prot = round((prots*4)/kcal, 2)
+            p_grasas = round((grasas*9)/kcal,2)
+            
+            calificacion_receta = 0.0
+            if p_carb in range(0.45, 0.66): calificacion_receta += 1
+            if p_prot in range(0.1, 0.36): calificacion_receta += 1
+            if p_grasas in range(0.2, 0.36): calificacion_receta += 1
 
-
-
+            calificacion_receta = calificacion_receta / 3      
+            Califs.append(calificacion_receta)     
                             
         dfFiltrados['kcal'] = Calorias
         dfFiltrados['proteinas_gr'] = Proteinas
         dfFiltrados['carbohidratos_gr'] = Carbs
         dfFiltrados['grasas_gr'] = Grasas
-        dfFiltrados['fibra_gr'] = Fibras
-        dfFiltrados['azucar_gr'] = Azucares
+        dfFiltrados['puntaje_platillo'] = Califs
+        # dfFiltrados['fibra_gr'] = Fibras
+        # dfFiltrados['azucar_gr'] = Azucares
 
         if (inline): self.DF_RecetasFiltradas = dfFiltrados
 
