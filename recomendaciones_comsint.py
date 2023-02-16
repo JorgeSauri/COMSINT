@@ -705,11 +705,11 @@ class Recomendador():
         sum_error = []
         for i in range(len(y_val)):
                 for j in range(len(INFO_COLS)):
-                    if y_val[i][j] <= test_predictions[i][j]
+                    if y_val[i][j] <= test_predictions[i][j]:
                         error = y_val[i][j] / test_predictions[i][j]
                     else:
                         error = test_predictions[i][j] / y_val[i][j]
-                        
+
                     sum_error.append(np.abs(error))
                     print('receta',i, INFO_COLS[j]+'_true:', y_val[i][j], INFO_COLS[j]+'_pred:', 
                             test_predictions[i][j], ' precisión:', round(error * 100, 1),'%')
