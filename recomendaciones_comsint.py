@@ -431,7 +431,7 @@ class Recomendador():
                 for i_ingredientes in range(np.random.randint(min_ingredientes, max_ingredientes+1)):
                     # Elegir un ingrediente al azar el dataframe de nutricionales
                     i_rand = np.random.randint(len(df))
-                    cant_rand = round(np.random.randint(25,300), 2)
+                    cant_rand = round(np.random.randint(10,150), 2)
                     row_alimento = df.iloc[i_rand]
                     nombre += str(cant_rand) + 'gr de ' + str(row_alimento['nombre']).lower().replace(',', ' ').strip() + ', '
                     # Como el dataset de nutrición viene en porciones de 100g cada medida
@@ -444,8 +444,12 @@ class Recomendador():
           
 
                 nombre = nombre[:-2]
-                RecetaRandom.append([nombre, kcal, gramos_carb, gramos_proteina, 
-                                    gramos_grasa, gramos_azucar, gramos_fibra])
+                RecetaRandom.append([nombre, round(kcal,2), 
+                                     round(gramos_carb,2), 
+                                     round(gramos_proteina,2), 
+                                     round(gramos_grasa,2), 
+                                     round(gramos_azucar,2), 
+                                     round(gramos_fibra,2)])
                 
                 
         result = np.array(RecetaRandom)
