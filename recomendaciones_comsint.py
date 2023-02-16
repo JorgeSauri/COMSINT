@@ -1021,14 +1021,14 @@ class Recomendador():
 
             # Calcular los porcentajes:
             # grasas = 9 kcal x gramo, carbs = 4 kcal * gramo, proteinas = 4 kcal * gramo
-            p_carb = round((carbs*4) / kcal,2)
-            p_prot = round((prots*4)/kcal, 2)
-            p_grasas = round((grasas*9)/kcal,2)
+            p_carb = int(round((carbs*4) / kcal)*100)
+            p_prot = int(round((prots*4)/kcal)*100)
+            p_grasas = int(round((grasas*9)/kcal)*100)
             
             calificacion_receta = 0.0
-            if p_carb in range(0.45, 0.66): calificacion_receta += 1
-            if p_prot in range(0.1, 0.36): calificacion_receta += 1
-            if p_grasas in range(0.2, 0.36): calificacion_receta += 1
+            if p_carb in range(45, 66): calificacion_receta += 1
+            if p_prot in range(10, 36): calificacion_receta += 1
+            if p_grasas in range(20, 36): calificacion_receta += 1
 
             calificacion_receta = calificacion_receta / 3      
             Califs.append(calificacion_receta)     
