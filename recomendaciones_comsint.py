@@ -796,7 +796,8 @@ class Recomendador():
             x_train = x
             y_train = y 
             x_test, y_test = self.CargarNumpyRecetas(6, self.EMB_SIZE, verbose=verbose, sufix='_TEST') 
-            if (len(x_test)==0 or len(y_test==0)):          
+            if (len(x_test)==0 or len(y_test==0)):
+                print('Procesando dataset de testing...')          
                 array = self.procesar_dataset_validacion(df_test)
                 x_test, y_test = self.calcular_feature_vecs(array, max_len=self.EMB_SIZE, save=True, verbose=verbose, sufix='_TEST')
             
@@ -805,7 +806,8 @@ class Recomendador():
                 x_test, x_val, y_test, y_val = train_test_split(x_test, y_test, train_size=0.8)
             else:      
                 x_val, y_val = self.CargarNumpyRecetas(4, self.EMB_SIZE, verbose=verbose, sufix='_VAL') 
-                if (len(x_val)==0 or len(y_val==0)):          
+                if (len(x_val)==0 or len(y_val==0)):  
+                    print('Procesando dataset de validación...')         
                     array2 = self.procesar_dataset_validacion(df_val)
                     x_val, y_val = self.calcular_feature_vecs(array2, max_len=self.EMB_SIZE, save=True, verbose=verbose, sufix='_VAL')
                 
