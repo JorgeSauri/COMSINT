@@ -750,6 +750,7 @@ class Recomendador():
     def EntrenarModelo(self, df_nutricionales='nutricion.csv', 
                        df_test='', df_val='',
                        min_ingredientes=5, max_ingredientes=10,
+                       min_gramos=5, max_gramos=50,
                        learning_rate = 1e-4,
                        batch_size = 8,
                        epochs = 20,
@@ -779,7 +780,8 @@ class Recomendador():
             dataset_entrenamiento = self.generar_dataset_entrenamiento_nut(df_nutricionales=df_nutricionales,
                                                                 numero_recetas=self.NUM_RECETAS, 
                                                                 min_ingredientes=min_ingredientes, 
-                                                                max_ingredientes=max_ingredientes)
+                                                                max_ingredientes=max_ingredientes,
+                                                                min_gramos=min_gramos, max_gramos=max_gramos)
 
             #dataset_entrenamiento[np.random.randint(len(dataset_entrenamiento))]      
 
