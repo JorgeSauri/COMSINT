@@ -385,6 +385,8 @@ class Recomendador():
                                     usecols=['nombre', 'kcal','carbohydrate', 'protein', 'total_fat', 'sugars', 'fiber'],
                                     min_ingredientes = 1,
                                     max_ingredientes = 5, 
+                                    min_gramos = 10,
+                                    max_gramos = 150,
                                     numero_recetas=100):
         """
         Regresa un NumPy Array para entrenar un modelo de regresión.
@@ -431,7 +433,7 @@ class Recomendador():
                 for i_ingredientes in range(np.random.randint(min_ingredientes, max_ingredientes+1)):
                     # Elegir un ingrediente al azar el dataframe de nutricionales
                     i_rand = np.random.randint(len(df))
-                    cant_rand = round(np.random.randint(10,150), 2)
+                    cant_rand = round(np.random.randint(min_gramos,max_gramos), 2)
                     row_alimento = df.iloc[i_rand]
                     nombre += str(cant_rand) + 'gr de ' + str(row_alimento['nombre']).lower().replace(',', ' ').strip() + ', '
                     # Como el dataset de nutrición viene en porciones de 100g cada medida
