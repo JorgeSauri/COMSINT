@@ -779,6 +779,7 @@ class Recomendador():
         if df_training != '':
             npy_training = pd.read_csv(self.basedir + 'datasets/' + df_training, encoding = "ISO-8859-1").to_numpy()           
             recetas_train = []
+            self.NUM_RECETAS = len(npy_training)
             for i in range(len(npy_training)):
                 row = array[i]
                 nombre = row[1]
