@@ -19,7 +19,7 @@ from transformers import logging
 logging.set_verbosity_warning()
 logging.set_verbosity_error()
 import tensorflow as tf
-from tensorflow.keras.layers import Input, Dense, Flatten, Dropout, Reshape, Conv1D, MaxPool1D, Reshape, LSTM, Bidirectional
+from tensorflow.keras.layers import Input, Dense, Flatten, Dropout, Reshape, Conv1D, MaxPool1D, Reshape, LayerNormalization #, BatchNormalization
 from tensorflow.keras.models import Model
 from tensorflow.keras.optimizers import Adam, RMSprop
 from tensorflow.keras.losses import mean_absolute_error, mean_squared_error
@@ -690,12 +690,15 @@ class Recomendador():
 
             # Capas densamente conectadas para aprender características y patrones 
 
-            x = Dense(256, activation='relu')(cnn)        
+            x = Dense(256, activation='relu')(cnn)     
+            x = LayerNormalization()(x)   
             x = Dense(128, activation='relu')(x)  
-            x = Dense(64, activation='relu')(x)   
-            x = Dropout(0.2)(x)     
+            x = LayerNormalization()(x)
+            x = Dense(64, activation='relu')(x) 
+            x = LayerNormalization()(x)  
+            x = Dropout(0.25)(x)     
             x = Flatten()(x)
-            output_tensor = Dense(numero_salidas, name='CapaSalida')(x)
+            output_tensor = Dense(numero_salidas, activation='relu', name='CapaSalida')(x)
 
             model = Model(inputs=input_tensor, outputs=output_tensor, name="ModeloCNNNut_"+str(kernels))
             model.build(input_shape)
