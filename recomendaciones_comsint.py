@@ -679,7 +679,8 @@ class Recomendador():
             reshaped = Reshape(input_shape=(-1,input_shape), target_shape=(emb_size, 768), name='RESHAPING')(input_tensor)
 
             # Capas de convolución
-            cnn = Conv1D(kernels*4, 5, activation='relu', name='CONV_1')(reshaped)       
+            cnn = BatchNormalization()(reshaped)
+            cnn = Conv1D(kernels*4, 5, activation='relu', name='CONV_1')(cnn)       
             cnn = MaxPool1D(pool_size=2, strides=1, padding='valid', name='POOLING_1')(cnn)
             cnn = Conv1D(kernels*2, 3, activation='relu', name='CONV_2')(cnn)
             cnn = MaxPool1D(pool_size=2, strides=1, padding='valid', name='POOLING_2')(cnn)
@@ -690,12 +691,9 @@ class Recomendador():
 
             # Capas densamente conectadas para aprender características y patrones 
 
-            x = Dense(256, activation='relu')(cnn)     
-            x = BatchNormalization()(x)   
-            x = Dense(128, activation='relu')(x)  
-            x = BatchNormalization()(x)
-            x = Dense(64, activation='relu')(x) 
-            x = BatchNormalization()(x)  
+            x = Dense(256, activation='relu')(cnn)                    
+            x = Dense(128, activation='relu')(x)              
+            x = Dense(64, activation='relu')(x)             
             x = Dropout(0.25)(x)                 
             output_tensor = Dense(numero_salidas, activation='relu', name='CapaSalida')(x)
 
