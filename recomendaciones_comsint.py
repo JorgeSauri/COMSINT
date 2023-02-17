@@ -413,7 +413,7 @@ class Recomendador():
     def generar_dataset_entrenamiento_nut(self, 
                                     df_nutricionales = '',                                   
                                     encoding='ISO-8859-1',
-                                    usecols=['nombre', 'kcal','carbohydrate', 'protein', 'total_fat', 'sugars', 'fiber'],
+                                    usecols=['nombre', 'kcal','carbohydrate', 'protein', 'total_fat'],
                                     min_ingredientes = 3,
                                     max_ingredientes = 10, 
                                     min_gramos = 50,
@@ -421,7 +421,7 @@ class Recomendador():
                                     numero_recetas=100):
         """
         Regresa un NumPy Array para entrenar un modelo de regresión.
-        Por defecto se toman las columnas: 'nombre', 'kcal','carbohydrate', 'protein', 'total_fat', 'sugars', 'fiber'
+        Por defecto se toman las columnas: 'nombre', 'kcal','carbohydrate', 'protein', 'total_fat'
         Que son las columnas del dataframe de nutricion que usamos para entrenar.
         El método toma al azar de min_ingredientes a max_ingredientes y genera también cantidades en gramos aleatorias.
         Con esta información el método genera recetas ficticias con su correcto contenido energético y nutricional.
@@ -458,8 +458,6 @@ class Recomendador():
                 gramos_carb = 0.0
                 gramos_proteina = 0.0
                 gramos_grasa = 0.0
-                gramos_azucar = 0.0
-                gramos_fibra = 0.0
 
                 for i_ingredientes in range(np.random.randint(min_ingredientes, max_ingredientes+1)):
                     # Elegir un ingrediente al azar el dataframe de nutricionales
@@ -471,18 +469,14 @@ class Recomendador():
                     kcal += cant_rand * (float(str(row_alimento['kcal']))/100)       
                     gramos_carb += cant_rand * (float(str(row_alimento['carbohydrate']).replace(' ', '').split('g')[0]) / 100)
                     gramos_proteina += cant_rand * (float(str(row_alimento['protein']).replace(' ', '').split('g')[0]) / 100)                               
-                    gramos_grasa += cant_rand * (float(str(row_alimento['total_fat']).replace(' ', '').split('g')[0]) / 100)
-                    gramos_azucar += cant_rand * (float(str(row_alimento['sugars']).replace(' ', '').split('g')[0]) / 100)             
-                    gramos_fibra += cant_rand * (float(str(row_alimento['fiber']).replace(' ', '').split('g')[0]) / 100)            
-          
+                    gramos_grasa += cant_rand * (float(str(row_alimento['total_fat']).replace(' ', '').split('g')[0]) / 100)          
 
                 nombre = nombre[:-2]
                 RecetaRandom.append([nombre, round(kcal,2), 
                                      round(gramos_carb,2), 
                                      round(gramos_proteina,2), 
-                                     round(gramos_grasa,2), 
-                                     round(gramos_azucar,2), 
-                                     round(gramos_fibra,2)])
+                                     round(gramos_grasa,2)]
+                                    )
                 
                 
         result = np.array(RecetaRandom)
@@ -497,10 +491,10 @@ class Recomendador():
                                 col_nombre_receta = 'nombre_del_platillo',
                                 col_nombre_porcion = 'serving_size',
                                 col_nombre_ingredientes = 'ingredientes',                               
-                                usecols=['kcal','carbohydrate', 'protein', 'total_fat', 'sugars', 'fiber']):
+                                usecols=['kcal','carbohydrate', 'protein', 'total_fat']):
         """
         Carga un dataframe con recetas y su información nutricional, y regresa un NumPy Array para entrenar un modelo de regresión.
-        Por defecto se toman las columnas: 'nombre', 'kcal','carbohydrate', 'protein', 'total_fat', 'sugars', 'fiber'
+        Por defecto se toman las columnas: 'nombre', 'kcal','carbohydrate', 'protein', 'total_fat'
         Que son las columnas del dataframe de nutricion que usamos para entrenar.
         
 
@@ -555,30 +549,10 @@ class Recomendador():
                     for c in cads:
                         if c.strip().isnumeric: 
                             gramos_grasa = float(c)
-                            break         
-                #azucares
-                try:
-                    gramos_azucar = float(str(row[usecols[4]]))
-                except:
-                    cads = str(row[usecols[4]]).split('gr')                   
-                    gramos_azucar = 0.0
-                    for c in cads:
-                        if c.strip().isnumeric: 
-                            gramos_azucar = float(c)
-                            break              
-                #fibras
-                try:
-                    gramos_fibra = float(str(row[usecols[5]]))
-                except:
-                    cads = str(row[usecols[5]]).split('gr')                   
-                    gramos_fibra = 0.0
-                    for c in cads:
-                        if c.strip().isnumeric: 
-                            gramos_fibra = float(c)
-                            break            
+                            break                  
                
                 Receta.append([ingredientes, round(kcal,2), round(gramos_carb,2), round(gramos_proteina,2), 
-                                    round(gramos_grasa,2), round(gramos_azucar,2), round(gramos_fibra,2)])
+                                    round(gramos_grasa,2)])
                 
                 
         result = np.array(Receta)
