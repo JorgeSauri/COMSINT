@@ -958,6 +958,78 @@ class Recomendador():
     ##################################################################
     # Filtrado de recetas por mejor calidad nutrimental:
     ##################################################################
+    def Calcular_InfoNutricional_from_List(self, lista_ingredientes_recetas, verbose=True):
+        """
+        Calcula la información nutricional y los costos de acuerdo al una lista de strings
+        con los ingredientes de recetas
+
+        Parámetros:
+        @lista_ingredientes_recetas: Una lista que contiene strings con listas de ingredientes
+        @verbose: Indica si se imprimen mensajes del proceso
+        
+        Devuelve:
+        Un dataframe con lo siguiente:
+          kcal, proteinas_gr, carbohidratos_gr, grasas_gr, puntaje_platillo
+        """
+
+        # Por cada receta:
+        # 1. Extraer ingredientes individuales
+        # 2. Calcular sus valores nutricionales
+        # 3. Agregarlos al dataframe resultante
+        if (verbose): print('Calculando información nutricional y costos... \n')
+
+        Calorias = []
+        Proteinas = []
+        Carbs = []
+        Grasas = []
+        Califs = []
+        
+
+        nutricion = self.PredecirInfoNutricional(lista_ingredientes_recetas, self.INFO_COLS, self.modeloCNN, 
+                                                 self.EMB_SIZE, verbose=verbose)
+
+        for i in range(len(nutricion)):
+            row = nutricion[i]   
+
+            kcal = round(float(row[self.INFO_COLS[0]]),2)            
+            Calorias.append(kcal)
+
+            carbs = round(float(row[self.INFO_COLS[1]]),2)
+            Carbs.append(carbs)
+            
+            prots = round(float(row[self.INFO_COLS[2]]),2)
+            Proteinas.append(prots)
+            
+            grasas = round(float(row[self.INFO_COLS[3]]),2)
+            Grasas.append(grasas)
+
+            # Calificar el platillo de acuerdo a:
+            # RANGO_CARBOHIDRATOS
+            # RANGO_PROTEINAS
+            # RANGO_GRASAS
+
+            # Calcular los porcentajes:
+            # grasas = 9 kcal x gramo, carbs = 4 kcal * gramo, proteinas = 4 kcal * gramo
+
+            p_carb = round(((carbs*4) / kcal)*100)
+            p_prot = round(((prots*4) / kcal)*100)
+            p_grasas = round(((grasas*4) / kcal)*100)
+            
+            calificacion_receta = 0.0
+            if p_carb in self.RANGO_CARBOHIDRATOS: calificacion_receta += 1
+            if p_prot in self.RANGO_PROTEINAS: calificacion_receta += 1
+            if p_grasas in self.RANGO_GRASAS: calificacion_receta += 1
+
+            calificacion_receta = round(calificacion_receta / 3, 1)     
+            Califs.append(calificacion_receta)    
+
+        dfFiltrados = pd.DataFrame(list(zip(lista_ingredientes_recetas, Calorias, Proteinas, Carbs, Grasas, Califs)),
+                                   columns=['ingredientes', 'kcal', 'proteinas_gr', 'carbs_gr', 'grasas_gr', 'puntaje_platillo']) 
+                            
+
+        return dfFiltrados
+
+
     def Calcular_InfoNutricional(self, dfFiltrados=None, col_ingredientes='ingredientes', verbose=True, inline=False):
         """
         Calcula la información nutricional y los costos de acuerdo al dataset
@@ -971,7 +1043,7 @@ class Recomendador():
         
         Devuelve:
         Una copia del dataframe filtrado de entrada con nuevas columnas:
-          kcal, proteinas_gr, carbohidratos_gr, grasas_gr, fibra_gr, azucar_gr, costo_total_min, costo_total_max
+          kcal, proteinas_gr, carbohidratos_gr, grasas_gr, fibra_gr, azucar_gr, puntaje_platillo
         """
 
         if (dfFiltrados == None): dfFiltrados = self.DF_RecetasFiltradas.copy()
