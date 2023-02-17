@@ -789,6 +789,7 @@ class Recomendador():
                             min_gramos=30, max_gramos=150,
                             learning_rate = 1e-4,
                             batch_size = 8,
+                            initial_epoch=0,
                             epochs = 20,
                             version =4, kernels=128,                   
                             steps_per_epoch = None,                       
@@ -903,7 +904,8 @@ class Recomendador():
        
         history = self.modeloCNN.fit(train_dataset,
                                 batch_size = batch_size,
-                                epochs = epochs,                                
+                                epochs = epochs,
+                                initial_epoch=initial_epoch,                                
                                 steps_per_epoch=steps_per_epoch,
                                 validation_data=test_dataset,                               
                                 verbose=verbose)
