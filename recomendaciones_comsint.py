@@ -31,9 +31,15 @@ from sklearn.model_selection import train_test_split
 # from tensorflow.keras.callbacks import ReduceLROnPlateau
 import os.path
 
-
 class Recomendador():
-
+    ############################################################################################################
+    ############################################################################################################
+    ####################################### SISTEMA DE RECOMENDACIONES #########################################    
+    ################################ UNIVERSIDAD INTERNACIONAL DE LA RIOJA #####################################
+    ############################################################################################################
+    ########################################## JORGE SAURI CREUS ###############################################    
+    ######################################### RUBI GUTIERREZ LOPEZ #############################################
+    ############################################################################################################
 
     NUM_RECETAS = 5000
     EMB_SIZE = 128
@@ -127,9 +133,11 @@ class Recomendador():
 
         
 
-    ##################################################################
-    # Utilerías:
-    ##################################################################
+    ############################################################################################################
+    ############################################################################################################
+    ## UTILERÍAS AUXILIARES PARA LA CLASE
+    ############################################################################################################
+    ############################################################################################################
     def LimpiarString(self, cadena):
         """
         Limpia una cadena de caracteres extraños, simbolos, stopwords, y unidades de medida
@@ -296,9 +304,16 @@ class Recomendador():
                             # Devuelve las listas
         return cantidades, unidades, ingredientes_texto
 
-    ##################################################################
-    # Métodos especiales para el filtrado de recetas por canasta básica:
-    ##################################################################
+
+
+
+
+    ############################################################################################################
+    ############################################################################################################
+    ## FILTRADO DE RECETAS CON BASE EN LA CANASTA BÁSICA:
+    ############################################################################################################
+    ############################################################################################################
+
     def FiltrarRecetario_por_CanastaBasica(self,
                           col_title='nombre_del_platillo', col_ingredientes='ingredientes',
                           similitud=0.6, max_rows=20, verbose=True):
@@ -354,9 +369,11 @@ class Recomendador():
         if (verbose): return dfFiltrados
 
 
-    ##################################################################
-    # Métodos especiales para el modelo de cálculo de info nutrimental:
-    ##################################################################
+    ############################################################################################################
+    ############################################################################################################
+    ## MÉTODOS PARA EL CÁLCULO DE INFORMACIÓN NUTRICIONAL:
+    ############################################################################################################
+    ############################################################################################################
 
     def feature_vector_similarity(self, feature_vec1, feature_vec2):        
         """
@@ -641,6 +658,16 @@ class Recomendador():
 
         return result_x, result_y
 
+
+
+
+    ############################################################################################################
+    ############################################################################################################
+    ## MODELO DE REGRESIÓN LINEAL PARA CÁLCULO DE INFORMACIÓN NUTRICIONAL
+    ## TOMANDO COMO ENTRADA UN VECTOR DE CARACTERÍSTICAS GENERADO POR UN MODELO DE LENGUAJE.
+    ############################################################################################################
+    ############################################################################################################
+
     def GenerarModeloRegresionCNN(self, input_shape, emb_size, numero_salidas, kernels=128):
             """
             Devuelve un modelo de CNN 1D para aprender 
@@ -678,8 +705,9 @@ class Recomendador():
             # Para no cambiar el shape de los inputs, le hacemos un reshape antes de pasarlo a la CONV1D:
             reshaped = Reshape(input_shape=(-1,input_shape), target_shape=(emb_size, 768), name='RESHAPING')(input_tensor)
 
-            # Capas de convolución
+            # Capa de normalización de las entradas
             cnn = BatchNormalization()(reshaped)
+            # Capas de convolución 1D
             cnn = Conv1D(kernels*4, 5, activation='relu', name='CONV_1')(cnn)       
             cnn = MaxPool1D(pool_size=2, strides=1, padding='valid', name='POOLING_1')(cnn)
             cnn = Conv1D(kernels*2, 3, activation='relu', name='CONV_2')(cnn)
@@ -690,20 +718,30 @@ class Recomendador():
             cnn = Flatten()(cnn)
 
             # Capas densamente conectadas para aprender características y patrones 
-
             x = Dense(256, activation='relu')(cnn)                    
             x = Dense(128, activation='relu')(x)              
             x = Dense(64, activation='relu')(x)             
-            x = Dropout(0.25)(x)                 
+            x = Dropout(0.25)(x)         
+
+            # Capa de salida de regresión:        
             output_tensor = Dense(numero_salidas, activation='relu', name='CapaSalida')(x)
 
+            # Construimos el modelo
             model = Model(inputs=input_tensor, outputs=output_tensor, name="ModeloCNNNut_"+str(kernels))
             model.build(input_shape)
 
+            # Guardamos el modelo en una propiedad de la clase
             self.modeloCNN = model
 
+            # Y también retornamos el modelo
             return model
 
+
+    ############################################################################################################
+    ############################################################################################################
+    ## MÉTODO PARA MOSTRAR MÉTRICAS DE EVALUACIÓN DE NUESTROS MODELOS
+    ############################################################################################################
+    ############################################################################################################
     def EvaluarModeloRegresion(self, INFO_COLS, history, x_val, y_val, modelo=None):
         """
         Evaluar y graficar el entrenamiento de un modelo de regresion.
@@ -749,7 +787,11 @@ class Recomendador():
         return
 
 
-
+    ############################################################################################################
+    ############################################################################################################
+    ## CARGA DE ARCHIVOS NUMPY GUARDADOS EN DISCO
+    ############################################################################################################
+    ############################################################################################################
     def CargarNumpyRecetas(self, NUM_RECETAS, EMB_SIZE, verbose=True, sufix='_recetas_random'):
         """
         Carga los arreglos X e Y desde archivos tipo npy (NumPy).
@@ -784,7 +826,13 @@ class Recomendador():
         return x, y
 
 
-
+    ############################################################################################################
+    ############################################################################################################
+    ## MÉTODO PARA ENTRENAR NUESTRO MODELO, YA SEA GENERANDO DATASETS DE RECETAS FICTICIAS
+    ## O BIEN, CARGANDO UN DATASET REAL DE RECETAS EN CSV Y PRE-PROCESÁNDOLO PARA ENTRENAR
+    ## TAMBIÉN RECIBE PARÁMETROS ESPECIALES PARA LA GENERACIÓN ALEATORIA DE RECETAS.
+    ############################################################################################################
+    ############################################################################################################
     def EntrenarModelo(self, df_nutricionales='nutricion.csv', 
                             df_training='',
                             df_test='', df_val='',
@@ -922,8 +970,13 @@ class Recomendador():
         return self.modeloCNN, history
 
 
+    ############################################################################################################
+    ############################################################################################################
+    ## CARGAR UN ARCHIVO .H5 DE UN MODELO EN PARTICULAR 
+    ############################################################################################################
+    ############################################################################################################
 
-    def CargarModelo(self, emb_size=512, version=4):
+    def CargarModelo(self, emb_size=128, version=4):
         """
         Carga un modelo existente desde archivo h5, utilizando el embedding size y la versión para
         armar el nombre del archivo y cargarlo en la variable modeloCNN de esta clase. 
@@ -948,7 +1001,11 @@ class Recomendador():
 
 
 
-
+    ############################################################################################################
+    ############################################################################################################
+    ## FUNCIÓN PARA PREDECIR VALORES NUTRICIONALES DADA UNA LISTA DE INGREDIENTES DE RECETAS
+    ############################################################################################################
+    ############################################################################################################
     def PredecirInfoNutricional(self, lista_ingredientes, 
                                 INFO_COLS=None, modelo=None, 
                                 emb_size=128, verbose=True):
@@ -1007,9 +1064,12 @@ class Recomendador():
 
 
 
-    ##################################################################
-    # Filtrado de recetas por mejor calidad nutrimental:
-    ##################################################################
+    ############################################################################################################
+    ############################################################################################################
+    ## FILTRADO DE RECETAS DE ACUERDO A SU CALIDAD NUTRICIONAL
+    ############################################################################################################
+    ############################################################################################################
+
     def Calcular_InfoNutricional_from_List(self, lista_ingredientes_recetas, verbose=True):
         """
         Calcula la información nutricional y los costos de acuerdo al una lista de strings
@@ -1081,6 +1141,11 @@ class Recomendador():
         return dfFiltrados
 
 
+    ############################################################################################################
+    ############################################################################################################
+    ## CÁLCULO DE LA INFORMACIÓN NUTRICIONAL DE UN DATASET UTILIZANDO EL MODELO DE REGRESIÓN:
+    ############################################################################################################
+    ############################################################################################################
 
     def Calcular_InfoNutricional(self, dfFiltrados=None, col_ingredientes='ingredientes', 
                                                         verbose=True, inline=False):
