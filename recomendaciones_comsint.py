@@ -12,7 +12,6 @@ from tqdm import tqdm
 import warnings
 warnings.filterwarnings("ignore", 'This pattern has match groups')
 
-import random
 from transformers import TFDistilBertModel, DistilBertTokenizerFast
 from transformers import logging
 logging.set_verbosity_warning()
@@ -20,8 +19,7 @@ logging.set_verbosity_error()
 import tensorflow as tf
 from tensorflow.keras.layers import Input, Dense, Flatten, Dropout, Reshape, Conv1D, MaxPool1D, Reshape, BatchNormalization
 from tensorflow.keras.models import Model
-from tensorflow.keras.optimizers import Adam, RMSprop
-from tensorflow.keras.losses import mean_absolute_error, mean_squared_error
+from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.preprocessing.sequence import pad_sequences
 from tensorflow import config
 import numpy as np
