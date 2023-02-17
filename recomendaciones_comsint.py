@@ -722,9 +722,12 @@ class Recomendador():
                 modelo = self.modeloCNN
         except:
             pass
-
-        pd.DataFrame(history.history).plot()
-        plt.show()
+        
+        try:
+            pd.DataFrame(history.history).plot()
+            plt.show()
+        except:
+            pass
 
         scores = modelo.evaluate(x_val, y_val)
         print(scores)
