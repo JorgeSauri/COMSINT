@@ -1,9 +1,10 @@
 # Requerimientos de librerías:
 # pip install spacy
 # python -m spacy download es_core_news_md
-
 # !pip install transformers
 # !pip install transformers scipy ftfy accelerate
+
+
 
 # Importar librerías
 import pandas as pd
@@ -35,7 +36,7 @@ class Recomendador():
 
 
     NUM_RECETAS = 5000
-    EMB_SIZE = 512
+    EMB_SIZE = 128
     VOCAB_SIZE = 768
     INFO_COLS = ['kcal','carbohydrate', 'protein', 'total_fat', 'sugars', 'fiber']
     basedir = ''
@@ -73,9 +74,12 @@ class Recomendador():
 
             Parámetros:
             -----------------------------------------------------------------------------------------------------------
-            @fuente: Ruta y archivo csv del recetario.
-            @nutricion: Ruta y archivo csv del dataset de información nutricional
-            @canasta: Ruta y archivo csv de la canasta básica
+            @basedir: Directorio base o raíz donde está corriendo la clase. 
+                      A partir de esta raíz, se utilizan los sub-directorios: datasets y modelos
+            @fuente: Archivo csv del recetario. (La clase lo buscará en: basedir/datasets/#####.csv)
+            @nutricion: Archivo csv del dataset de información nutricional. (La clase lo buscará en: basedir/datasets/#####.csv)
+            @canasta: Archivo csv de la canasta básica. (La clase lo buscará en: basedir/datasets/#####.csv)
+            @precios: Archivo csv con la lista de precios de profeco de todos los productos de alimentación. (La clase lo buscará en: basedir/datasets/#####.csv)
             @encoding: Tipo de codificación del archivo (utf-8 o iso-8859-1)
         """
 
@@ -308,7 +312,7 @@ class Recomendador():
           @col_ingredientes: Nombre de la columna del csv con los ingredientes
           @similitud: Similitud de ingredientes mínima permitida con la lista de la canasta básica
           @max_rows: Número máximo de filas que devuelve la función ordenadas de mayor a menor similitud
-
+          @verbose: Indica si se imprimen mensajes durante el proceso
           -----------------------------------------------------------------------------------------------------------
 
           Devuelve:
@@ -367,7 +371,7 @@ class Recomendador():
         cos_sim = tf.keras.losses.cosine_similarity(feature_vec1, feature_vec2)
         return cos_sim
 
-    def get_feature_vectors(self, ingredient_list, max_len=64):
+    def get_feature_vectors(self, ingredient_list, max_len=128):
         """
         Utiliza DistilBERT para obtener los vectores de características de una lista de ingredientes.
         Primero tokeniza el string de que recibe de entrada utilizando un BERT Tokenizer, 
@@ -396,10 +400,10 @@ class Recomendador():
                                     df_nutricionales = '',                                   
                                     encoding='ISO-8859-1',
                                     usecols=['nombre', 'kcal','carbohydrate', 'protein', 'total_fat', 'sugars', 'fiber'],
-                                    min_ingredientes = 1,
-                                    max_ingredientes = 5, 
-                                    min_gramos = 10,
-                                    max_gramos = 150,
+                                    min_ingredientes = 3,
+                                    max_ingredientes = 10, 
+                                    min_gramos = 50,
+                                    max_gramos = 120,
                                     numero_recetas=100):
         """
         Regresa un NumPy Array para entrenar un modelo de regresión.
@@ -471,6 +475,7 @@ class Recomendador():
 
 
         return result
+
 
     def procesar_dataset_validacion(self, 
                                 df_recetas, 
@@ -567,7 +572,11 @@ class Recomendador():
 
         return result        
 
-    def calcular_feature_vecs(self, array_recetas, max_len=128, save=True, verbose=True, sufix='_recetas_random'):
+
+
+    def calcular_feature_vecs(self, array_recetas, max_len=128, 
+                                    save=True, verbose=True, 
+                                    sufix='_recetas_random'):
 
         """
         Método que recibe un array de recetas con el siguiente formato:
@@ -632,21 +641,27 @@ class Recomendador():
 
         return result_x, result_y
 
-    def GenerarModeloRegresionCNN(self, input_shape, emb_size, numero_salidas, kernels=16):
+    def GenerarModeloRegresionCNN(self, input_shape, emb_size, numero_salidas, kernels=128):
             """
             Devuelve un modelo de CNN 1D para aprender 
             los patrones de ingredientes y sus valores nutricionales.
 
             Parámetros:
-            @emb_size: El tamaño de embbeding que se utilizó (el vocab es 768)
+            @input_shape: El shape de entrada o input shape del vector de características.
+                          NOTA: El modelo recibe un VECTOR, y luego hace un reshaping al formato necesario
+                                para las capas de convolución, no es necesario modificar el shape del vector.
+
+            @emb_size: El tamaño de embbeding que se utilizó (el tamaño del vocabulario para DistilBERT es 768)
             @numero_salidas: El número de columnas o valores que aprenderá a predecir.
+            @kernels: Un factor base para el número de kernels o filtros de las capas de convolución.
+                      Toma como base el parámetro pasado 'kernels' y luego lo multiplica por 4 para aumentar el número de filtros.                     
 
             Devuelve: 
             Una instancia de la clase tensorflow.keras.Model
 
             Ejemplo:
             modelo = GenerarModelo(emb_size=512, numero_salidas=y_train.shape[1])
-            modelo.compile(RMSprop(learning_rate=1e-5), loss="mean_absolute_error", metrics=['accuracy'])
+            modelo.compile(RMSprop(learning_rate=1e-5), loss="mean_absolute_error", metrics=['mae'])
             modelo.summary()
 
             history = modelo.fit(x = x_train, y = y_train,
@@ -730,6 +745,8 @@ class Recomendador():
         print('Precisión promedio aprox. = ', round(np.mean(sum_error)*100,2),'%')
         return
 
+
+
     def CargarNumpyRecetas(self, NUM_RECETAS, EMB_SIZE, verbose=True, sufix='_recetas_random'):
         """
         Carga los arreglos X e Y desde archivos tipo npy (NumPy).
@@ -763,16 +780,19 @@ class Recomendador():
                 if not check_fileY: print(archivoY, 'no existe o está corrupto.')        
         return x, y
 
-    def EntrenarModelo(self, df_nutricionales='nutricion.csv', df_training='',
-                       df_test='', df_val='',
-                       min_ingredientes=5, max_ingredientes=10,
-                       min_gramos=5, max_gramos=50,
-                       learning_rate = 1e-4,
-                       batch_size = 8,
-                       epochs = 20,
-                       version =2, kernels=16,                   
-                       steps_per_epoch = None,                       
-                       verbose=True, save=True, savenumpy=False):
+
+
+    def EntrenarModelo(self, df_nutricionales='nutricion.csv', 
+                            df_training='',
+                            df_test='', df_val='',
+                            min_ingredientes=5, max_ingredientes=10,
+                            min_gramos=30, max_gramos=150,
+                            learning_rate = 1e-4,
+                            batch_size = 8,
+                            epochs = 20,
+                            version =4, kernels=128,                   
+                            steps_per_epoch = None,                       
+                            verbose=True, save=True, savenumpy=False):
         """
         Entrenar el modelo de cálculo de información nutricional
 
@@ -781,12 +801,19 @@ class Recomendador():
         @df_training: Si hay un dataset en csv para entrenar, lo utiliza en vez de generar recetas ficticias
         @min_ingredientes: Mínimo de ingredientes a utilizar para el generador de recetas de entrenamiento
         @max_ingredientes: Máximo de ingredientes a utilizar para el generador de recetas de entrenamiento
+        @min_gramos: Al generar un dataset de entrenamiento ficticio, la cantidad mínima de gramos a utilizar por el algoritmo
+        @max_gramos: Al generar un dataset de entrenamiento ficticio, la cantidad máxima de gramos a utilizar por el algoritmo
+        @learning_rate: La tasa de aprendizaje utilizada por el optimizador (Adam)
         @batch_size: El tamaño de los lotes de entrenamiento
         @epochs: El número de épocas a entrenar el modelo
+        @version: Un número interno que utilizamos para versionar nuestros modelos
+        @kernels: Un factor base para el número de kernels o filtros de las capas de convolución que será pasado
+                  al método GenerarModeloRegresionCNN (el cuál este método utiliza)
         @verbose: Si es True, imprime información del proceso de entrenamiento
         @save: Indica si se guardará automáticamente el modelo h5 en disco
-
-        Devuelve: El modelo entrenado y el history del entrenamiento    
+        @savenumpy: Indica si al generar arreglos numpy de entrenamiento, se guardarán en disco como archivos npy
+        
+        Devuelve: Una tupla con modelo entrenado y el history del entrenamiento -> (model, history)
         """
 
         if df_training != '':
@@ -827,8 +854,7 @@ class Recomendador():
                                                                     max_ingredientes=max_ingredientes,
                                                                     min_gramos=min_gramos, max_gramos=max_gramos)
 
-                #dataset_entrenamiento[np.random.randint(len(dataset_entrenamiento))]      
-
+               
                 x, y = self.calcular_feature_vecs(dataset_entrenamiento, max_len=self.EMB_SIZE, save=savenumpy, verbose=verbose)
 
         if (df_test == ''): #Si no proporcionas un dataframe de test, generarlo:
@@ -852,7 +878,9 @@ class Recomendador():
                     print('Procesando dataset de validación...')         
                     array2 = self.procesar_dataset_validacion(df_val)
                     x_val, y_val = self.calcular_feature_vecs(array2, max_len=self.EMB_SIZE, save=True, verbose=verbose, sufix='_VAL')
-                
+
+        # Utilizamos la utilería Dataset de TensorFlow para que gestione la alimentación de los datasets de 
+        # entrenamiento y no aparezcan errores por desbordamiento de memoria RAM o de RAM de GPU     
         train_dataset = tf.data.Dataset.from_tensor_slices((x_train, y_train)).batch(batch_size)
         test_dataset = tf.data.Dataset.from_tensor_slices((x_test, y_test)).batch(batch_size)
 
@@ -860,9 +888,12 @@ class Recomendador():
                                                         emb_size=self.EMB_SIZE, kernels=kernels,
                                                         numero_salidas=y_train.shape[1])
 
+        # Utilizaremos como métrica de pérdida el MAE, ya que es un problema de regresión
         self.modeloCNN.compile(Adam(learning_rate=learning_rate), loss="mean_absolute_error", metrics=['mae'])
+        
         if (verbose): self.modeloCNN.summary()
 
+        # El modelo se guardará en la carpeta basedir + 'Modelos/'
         archivoC = self.basedir + 'Modelos/Modelo_Nut_FV_DistilBERT_0'+str(version)+'_EMBED-'+ str(self.EMB_SIZE) +'_CNN.h5'
 
         check_fileC = os.path.isfile(archivoC)
@@ -874,10 +905,8 @@ class Recomendador():
                                 batch_size = batch_size,
                                 epochs = epochs,                                
                                 steps_per_epoch=steps_per_epoch,
-                                validation_data=test_dataset,
-                                #callbacks=callbacks,
+                                validation_data=test_dataset,                               
                                 verbose=verbose)
-
 
         if (save): 
             self.modeloCNN.save(archivoC)
@@ -887,7 +916,18 @@ class Recomendador():
 
         return self.modeloCNN, history
 
-    def CargarModelo(self, emb_size=512, version=2):
+
+
+    def CargarModelo(self, emb_size=512, version=4):
+        """
+        Carga un modelo existente desde archivo h5, utilizando el embedding size y la versión para
+        armar el nombre del archivo y cargarlo en la variable modeloCNN de esta clase. 
+        
+        El formato es: 
+            Modelo_Nut_FV_DistilBERT_[VERSION]_EMBED-[EMB_SIZE]_CNN.h5
+            Donde [VERSION] es el número de versión que estamos entrenando o probando.
+                  [EMB_SIZE] el tamaño de embeddings que se utilizó para codificar el texto con DistilBERT
+        """
 
         archivoC = self.basedir + 'Modelos/Modelo_Nut_FV_DistilBERT_0'+str(version)+'_EMBED-'+ str(emb_size) +'_CNN.h5'
         check_fileC = os.path.isfile(archivoC)
@@ -901,7 +941,12 @@ class Recomendador():
             print('Puedes crear uno nuevo con el método EntrenarModelo()\n')
         return
 
-    def PredecirInfoNutricional(self, lista_ingredientes, INFO_COLS=None, modelo=None, emb_size=512, verbose=True):
+
+
+
+    def PredecirInfoNutricional(self, lista_ingredientes, 
+                                INFO_COLS=None, modelo=None, 
+                                emb_size=128, verbose=True):
         """
         Realiza una inferencia de los valores nutrimentales dada una lista de ingredientes.
 
@@ -954,6 +999,8 @@ class Recomendador():
                 print('---------------------------------------------------------------------------\n')               
 
         return result
+
+
 
     ##################################################################
     # Filtrado de recetas por mejor calidad nutrimental:
@@ -1026,11 +1073,12 @@ class Recomendador():
         dfFiltrados = pd.DataFrame(list(zip(lista_ingredientes_recetas, Calorias, Proteinas, Carbs, Grasas, Califs)),
                                    columns=['ingredientes', 'kcal', 'proteinas_gr', 'carbs_gr', 'grasas_gr', 'puntaje_platillo']) 
                             
-
         return dfFiltrados
 
 
-    def Calcular_InfoNutricional(self, dfFiltrados=None, col_ingredientes='ingredientes', verbose=True, inline=False):
+
+    def Calcular_InfoNutricional(self, dfFiltrados=None, col_ingredientes='ingredientes', 
+                                                        verbose=True, inline=False):
         """
         Calcula la información nutricional y los costos de acuerdo al dataset
         de información nutricional y al dataset de la canasta básica
@@ -1044,6 +1092,9 @@ class Recomendador():
         Devuelve:
         Una copia del dataframe filtrado de entrada con nuevas columnas:
           kcal, proteinas_gr, carbohidratos_gr, grasas_gr, fibra_gr, azucar_gr, puntaje_platillo
+
+          La variable puntaje_platillo es un factor porcentual entre 0 y 1 que indica que tan bien cumple
+          con la regla de las proporciones saludables de carbohidratos, proteínas y grasas de gramos por cantidad de energía (kcal)
         """
 
         if (dfFiltrados == None): dfFiltrados = self.DF_RecetasFiltradas.copy()
@@ -1118,9 +1169,10 @@ class Recomendador():
         dfFiltrados['proteinas_gr'] = Proteinas
         dfFiltrados['carbohidratos_gr'] = Carbs
         dfFiltrados['grasas_gr'] = Grasas
+        dfFiltrados['fibra_gr'] = Fibras
+        dfFiltrados['azucar_gr'] = Azucares
         dfFiltrados['puntaje_platillo'] = Califs
-        # dfFiltrados['fibra_gr'] = Fibras
-        # dfFiltrados['azucar_gr'] = Azucares
+
 
         if (inline): self.DF_RecetasFiltradas = dfFiltrados
 
