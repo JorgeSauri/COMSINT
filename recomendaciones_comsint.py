@@ -418,8 +418,8 @@ class Recomendador():
                                     usecols=['nombre', 'kcal','carbohydrate', 'protein', 'total_fat'],
                                     min_ingredientes = 3,
                                     max_ingredientes = 10, 
-                                    min_unidades = 50,
-                                    max_unidades = 120,
+                                    min_unidades = 5,
+                                    max_unidades = 20,
                                     numero_recetas=100):
         """
         Regresa un NumPy Array para entrenar un modelo de regresión.
@@ -454,10 +454,9 @@ class Recomendador():
         
         RecetaRandom = []
 
-        lista_medidas_chicas = ['libras',
-                                'onzas',
+        lista_medidas_chicas = ['onzas',
                                 'gramos',
-                                'litros',
+                                'mililitros',
                                 'piezas',
                                 'tazas',
                                 'cucharadas',
@@ -829,8 +828,8 @@ class Recomendador():
     def EntrenarModelo(self, df_nutricionales='nutricion.csv', 
                             df_training='',
                             df_test='', df_val='',
-                            min_ingredientes=5, max_ingredientes=10,
-                            min_unidades=1, max_unidades=10,
+                            min_ingredientes=5, max_ingredientes=15,
+                            min_unidades=5, max_unidades=20,
                             learning_rate = 1e-4,
                             batch_size = 8,
                             initial_epoch=0,
