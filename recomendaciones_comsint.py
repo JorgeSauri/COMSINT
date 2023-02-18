@@ -41,7 +41,7 @@ class Recomendador():
     NUM_RECETAS = 5000
     EMB_SIZE = 128
     VOCAB_SIZE = 768
-    INFO_COLS = ['kcal','carbohydrate', 'protein', 'total_fat', 'sugars', 'fiber']
+    INFO_COLS = ['kcal','carbohydrate', 'protein', 'total_fat']
     basedir = ''
 
     # Calificar el platillo de acuerdo a:
@@ -852,15 +852,13 @@ class Recomendador():
                 gramos_carb = float(row[4])
                 gramos_proteina = float(row[5])
                 gramos_grasa = float(row[6])
-                gramos_azucar = float(row[7])
-                gramos_fibra = float(row[8])
+
 
                 recetas_train.append([nombre, round(kcal,2), 
                                     round(gramos_carb,2), 
                                     round(gramos_proteina,2), 
-                                    round(gramos_grasa,2), 
-                                    round(gramos_azucar,2), 
-                                    round(gramos_fibra,2)])
+                                    round(gramos_grasa,2)]
+                                    )
 
             recetas_train = np.array(recetas_train)             
             x, y = self.calcular_feature_vecs(recetas_train, max_len=self.EMB_SIZE, save=savenumpy, verbose=verbose)
