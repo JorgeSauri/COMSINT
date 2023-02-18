@@ -234,7 +234,7 @@ class Recomendador():
                 factor = Convercion[unidad]
                 result = cantidad * factor
                 break
-        return round(result,2)
+        return round(result)
 
     def separar_ingredientes_spacy(self, cadena):
         """
@@ -464,12 +464,12 @@ class Recomendador():
                     i_rand = np.random.randint(len(df))
                     cant_rand = np.random.randint(min_unidades,max_unidades)
 
-                    unidades = self.Medidas[np.random.randint(len(self.Medidas))]
+                    unidades = list(self.Medidas.keys())[np.random.randint(len(self.Medidas))]
 
                     cant_rand_gr = self.convertir_a_gramos(cant_rand, unidades)
 
                     row_alimento = df.iloc[i_rand]
-                    nombre += str(cant_rand) + unidades +' de ' + str(row_alimento['nombre']).lower().replace(',', ' ').strip() + ', '
+                    nombre += str(cant_rand) + ' ' + unidades +' de ' + str(row_alimento['nombre']).lower().replace(',', ' ').strip() + ', '
                     # Como el dataset de nutrición viene en porciones de 100g cada medida
                     kcal += cant_rand_gr * (float(str(row_alimento['kcal']))/100)       
                     gramos_carb += cant_rand_gr * (float(str(row_alimento['carbohydrate']).replace(' ', '').split('g')[0]) / 100)
