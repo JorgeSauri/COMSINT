@@ -1132,7 +1132,7 @@ class Recomendador():
         
         Devuelve:
         Una copia del dataframe filtrado de entrada con nuevas columnas:
-          kcal, proteinas_gr, carbohidratos_gr, grasas_gr, fibra_gr, azucar_gr, puntaje_platillo
+          kcal, proteinas_gr, carbohidratos_gr, grasas_gr, puntaje_platillo
 
           La variable puntaje_platillo es un factor porcentual entre 0 y 1 que indica que tan bien cumple
           con la regla de las proporciones saludables de carbohidratos, proteínas y grasas de gramos por cantidad de energía (kcal)
@@ -1156,8 +1156,6 @@ class Recomendador():
         Proteinas = []
         Carbs = []
         Grasas = []
-        Fibras = []
-        Azucares = []
         Califs = []
 
         recetas = [str(dfFiltrados.iloc[i][col_ingredientes]).strip() for i in range(len(dfFiltrados))]
@@ -1180,11 +1178,6 @@ class Recomendador():
             grasas = round(float(row[self.INFO_COLS[3]]),2)
             Grasas.append(grasas)
             
-            sugars = round(float(row[self.INFO_COLS[4]]),2)
-            Azucares.append(sugars)
-            
-            fibras = round(float(row[self.INFO_COLS[5]]),2)
-            Fibras.append(fibras)
 
             # Calificar el platillo de acuerdo a:
             # RANGO_CARBOHIDRATOS
@@ -1210,8 +1203,6 @@ class Recomendador():
         dfFiltrados['proteinas_gr'] = Proteinas
         dfFiltrados['carbohidratos_gr'] = Carbs
         dfFiltrados['grasas_gr'] = Grasas
-        dfFiltrados['fibra_gr'] = Fibras
-        dfFiltrados['azucar_gr'] = Azucares
         dfFiltrados['puntaje_platillo'] = Califs
 
 
