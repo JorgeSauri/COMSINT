@@ -742,19 +742,25 @@ class Recomendador():
         print(scores)
 
         test_predictions = modelo.predict(x_val)
-        sum_error = []
+        sum_acc = []
         for i in range(len(y_val)):
                 for j in range(len(INFO_COLS)):
-                    if y_val[i][j] <= test_predictions[i][j]:
-                        error = y_val[i][j] / test_predictions[i][j]
+                    if y_val[i][j] <= test_predictions[i][j]: 
+                        if (test_predictions[i][j]>0):
+                            acc = y_val[i][j] / test_predictions[i][j]
+                        else:
+                            acc = 0.0
                     else:
-                        error = test_predictions[i][j] / y_val[i][j]
+                        if (y_val[i][j]>0):
+                            acc = test_predictions[i][j] / y_val[i][j]
+                        else:
+                            acc = 0.0
 
-                    sum_error.append(np.abs(error))
+                    sum_acc.append(np.abs(acc))
                     print('receta',i, INFO_COLS[j]+'_true:', y_val[i][j], INFO_COLS[j]+'_pred:', 
-                            test_predictions[i][j], ' precisión:', round(error * 100, 1),'%')
+                            test_predictions[i][j], ' precisión:', round(acc * 100, 1),'%')
                 print('---------------------------------------------------------------------------')
-        print('Precisión promedio aprox. = ', round(np.mean(sum_error)*100,2),'%')
+        print('Precisión promedio aprox. = ', round(np.mean(sum_acc)*100,2),'%')
         return
 
 
