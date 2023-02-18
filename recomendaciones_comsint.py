@@ -102,7 +102,8 @@ class Recomendador():
         self.nlp = spacy.load("es_core_news_md")
 
         # Diccionario de medidas más comunes en recetas
-        self.Medidas = {                
+        self.Medidas = {     
+            'libras': ['libra ', 'libras ', 'lb ', 'lb.'],           
             'onzas': ['onza ', 'onzas ', 'oz ', 'ozs ', 'onza.', 'onzas.', 'oz.', 'ozs.'],
             'kilos': ['kilo ', 'kilos ', 'kg ', 'k ', 'kgr ', 'kilo.', 'kilos.', 'kg.', 'k.', 'kgr.', 'kilogramos ', 'kilogramos.'],
             'miligramos': ['mg ', 'miligramo ', 'miligramos ', 'mgr ', 'mg.', 'mgr.', 'miligramos.', 'miligramo.'],
@@ -215,7 +216,8 @@ class Recomendador():
         return cantidad, result
 
     def convertir_a_gramos(self, cantidad, unidad):
-        Convercion = {                
+        Convercion = {
+                'libras': 453.6,                
                 'onzas': 28.35,
                 'kilos': 1000,
                 'miligramos': 0.0009,
@@ -227,15 +229,15 @@ class Recomendador():
                 'cucharadas': 0.0135,
                 'cucharaditas': 0.0045
                 }    
-        result = 0
+        result = 0.0
         # encontrar que unidad del diccionario es:
         for medida in self.Medidas:
             if unidad == medida:
                 factor = Convercion[unidad]
                 result = cantidad * factor
                 break
-        return round(result)
-
+        return round(result, 4)
+ 
     def separar_ingredientes_spacy(self, cadena):
         """
           Recibe un string con los ingredientes mezclados y separados por coma con cantidades, unidades y descripciones,
@@ -452,6 +454,15 @@ class Recomendador():
         
         RecetaRandom = []
 
+        lista_medidas_chicas = ['libras',
+                                'onzas',
+                                'gramos',
+                                'litros',
+                                'piezas',
+                                'tazas',
+                                'cucharadas',
+                                'cucharaditas']
+
         for i_recetas in tqdm(range(numero_recetas)):
                 nombre = ''
                 kcal = 0.0
@@ -464,7 +475,7 @@ class Recomendador():
                     i_rand = np.random.randint(len(df))
                     cant_rand = np.random.randint(min_unidades,max_unidades)
 
-                    unidades = list(self.Medidas.keys())[np.random.randint(len(self.Medidas))]
+                    unidades = lista_medidas_chicas[np.random.randint(len(lista_medidas_chicas))]
 
                     cant_rand_gr = self.convertir_a_gramos(cant_rand, unidades)
 
