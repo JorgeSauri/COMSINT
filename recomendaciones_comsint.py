@@ -416,8 +416,8 @@ class Recomendador():
                                     usecols=['nombre', 'kcal','carbohydrate', 'protein', 'total_fat'],
                                     min_ingredientes = 3,
                                     max_ingredientes = 10, 
-                                    min_gramos = 50,
-                                    max_gramos = 120,
+                                    min_unidades = 50,
+                                    max_unidades = 120,
                                     numero_recetas=100):
         """
         Regresa un NumPy Array para entrenar un modelo de regresión.
@@ -462,14 +462,19 @@ class Recomendador():
                 for i_ingredientes in range(np.random.randint(min_ingredientes, max_ingredientes+1)):
                     # Elegir un ingrediente al azar el dataframe de nutricionales
                     i_rand = np.random.randint(len(df))
-                    cant_rand = round(np.random.randint(min_gramos,max_gramos), 2)
+                    cant_rand = np.random.randint(min_unidades,max_unidades)
+
+                    unidades = self.Medidas[np.random.randint(len(self.Medidas))]
+
+                    cant_rand_gr = self.convertir_a_gramos(cant_rand, unidades)
+
                     row_alimento = df.iloc[i_rand]
-                    nombre += str(cant_rand) + 'gr de ' + str(row_alimento['nombre']).lower().replace(',', ' ').strip() + ', '
+                    nombre += str(cant_rand) + unidades +' de ' + str(row_alimento['nombre']).lower().replace(',', ' ').strip() + ', '
                     # Como el dataset de nutrición viene en porciones de 100g cada medida
-                    kcal += cant_rand * (float(str(row_alimento['kcal']))/100)       
-                    gramos_carb += cant_rand * (float(str(row_alimento['carbohydrate']).replace(' ', '').split('g')[0]) / 100)
-                    gramos_proteina += cant_rand * (float(str(row_alimento['protein']).replace(' ', '').split('g')[0]) / 100)                               
-                    gramos_grasa += cant_rand * (float(str(row_alimento['total_fat']).replace(' ', '').split('g')[0]) / 100)          
+                    kcal += cant_rand_gr * (float(str(row_alimento['kcal']))/100)       
+                    gramos_carb += cant_rand_gr * (float(str(row_alimento['carbohydrate']).replace(' ', '').split('g')[0]) / 100)
+                    gramos_proteina += cant_rand_gr * (float(str(row_alimento['protein']).replace(' ', '').split('g')[0]) / 100)                               
+                    gramos_grasa += cant_rand_gr * (float(str(row_alimento['total_fat']).replace(' ', '').split('g')[0]) / 100)          
 
                 nombre = nombre[:-2]
                 RecetaRandom.append([nombre, round(kcal,2), 
@@ -814,7 +819,7 @@ class Recomendador():
                             df_training='',
                             df_test='', df_val='',
                             min_ingredientes=5, max_ingredientes=10,
-                            min_gramos=30, max_gramos=150,
+                            min_unidades=1, max_unidades=10,
                             learning_rate = 1e-4,
                             batch_size = 8,
                             initial_epoch=0,
@@ -830,8 +835,8 @@ class Recomendador():
         @df_training: Si hay un dataset en csv para entrenar, lo utiliza en vez de generar recetas ficticias
         @min_ingredientes: Mínimo de ingredientes a utilizar para el generador de recetas de entrenamiento
         @max_ingredientes: Máximo de ingredientes a utilizar para el generador de recetas de entrenamiento
-        @min_gramos: Al generar un dataset de entrenamiento ficticio, la cantidad mínima de gramos a utilizar por el algoritmo
-        @max_gramos: Al generar un dataset de entrenamiento ficticio, la cantidad máxima de gramos a utilizar por el algoritmo
+        @min_unidades: Al generar un dataset de entrenamiento ficticio, la cantidad mínima de unidades a utilizar por el algoritmo
+        @max_unidades: Al generar un dataset de entrenamiento ficticio, la cantidad máxima de unidades a utilizar por el algoritmo
         @learning_rate: La tasa de aprendizaje utilizada por el optimizador (Adam)
         @batch_size: El tamaño de los lotes de entrenamiento
         @epochs: El número de épocas a entrenar el modelo
@@ -879,7 +884,7 @@ class Recomendador():
                                                                     numero_recetas=self.NUM_RECETAS, 
                                                                     min_ingredientes=min_ingredientes, 
                                                                     max_ingredientes=max_ingredientes,
-                                                                    min_gramos=min_gramos, max_gramos=max_gramos)
+                                                                    min_unidades=min_unidades, max_unidades=max_unidades)
 
                
                 x, y = self.calcular_feature_vecs(dataset_entrenamiento, max_len=self.EMB_SIZE, save=savenumpy, verbose=verbose)
