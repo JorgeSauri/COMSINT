@@ -420,6 +420,9 @@ class Recomendador():
                                     max_ingredientes = 10, 
                                     min_unidades = 5,
                                     max_unidades = 20,
+                                    min_kcal = 0,
+                                    max_kcal = 10000,
+                                    healthy_only = False,
                                     numero_recetas=100):
         """
         Regresa un NumPy Array para entrenar un modelo de regresión.
@@ -461,6 +464,8 @@ class Recomendador():
                                 'tazas',
                                 'cucharadas',
                                 'cucharaditas']
+        check_kcal = False
+        check_saludable = False
 
         for i_recetas in tqdm(range(numero_recetas)):
                 nombre = ''
@@ -487,11 +492,22 @@ class Recomendador():
                     gramos_grasa += cant_rand_gr * (float(str(row_alimento['total_fat']).replace(' ', '').split('g')[0]) / 100)          
 
                 nombre = nombre[:-2]
-                RecetaRandom.append([nombre, round(kcal,2), 
-                                     round(gramos_carb,2), 
-                                     round(gramos_proteina,2), 
-                                     round(gramos_grasa,2)]
-                                    )
+
+                # Tope de kcals:
+                if (kcal in range(min_kcal, max_kcal+1)): check_kcal = True
+                
+                # Si healty_only es True, solo acepta recetas en los rangos saludables
+                if healthy_only:
+                    check_saludable = (gramos_carb in self.RANGO_CARBOHIDRATOS 
+                                        and gramos_proteina in self.RANGO_PROTEINAS 
+                                        and gramos_grasa in self.RANGO_GRASAS)                        
+
+                if check_kcal and check_saludable:
+                    RecetaRandom.append([nombre, round(kcal,2), 
+                                        round(gramos_carb,2), 
+                                        round(gramos_proteina,2), 
+                                        round(gramos_grasa,2)]
+                                        )
                 
                 
         result = np.array(RecetaRandom)
