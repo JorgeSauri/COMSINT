@@ -421,8 +421,7 @@ class Recomendador():
                                     min_unidades = 5,
                                     max_unidades = 20,
                                     min_kcal = 0,
-                                    max_kcal = 10000,
-                                    healthy_only = False,
+                                    max_kcal = 10000,                                    
                                     numero_recetas=100):
         """
         Regresa un NumPy Array para entrenar un modelo de regresión.
@@ -472,14 +471,16 @@ class Recomendador():
                 gramos_carb = 0.0
                 gramos_proteina = 0.0
                 gramos_grasa = 0.0
+                
+                fallas = 0
 
                 agregar_receta = False
                 while (not agregar_receta):
                     agregar_receta = False
                     check_kcal = False
-                    check_saludable = False
-
+                                                                      
                     for i_ingredientes in range(np.random.randint(min_ingredientes, max_ingredientes+1)):
+                        
                         # Elegir un ingrediente al azar el dataframe de nutricionales
                         i_rand = np.random.randint(len(df))
                         cant_rand = np.random.randint(min_unidades,max_unidades)
@@ -504,24 +505,28 @@ class Recomendador():
                     # Tope de kcals:
                     if (round(kcal) in range(min_kcal, max_kcal+1)): check_kcal = True
                     
-                    # Si healty_only es True, solo acepta recetas en los rangos saludables
-                    if healthy_only:
-                        check_saludable = (round(gramos_carb) in self.RANGO_CARBOHIDRATOS 
-                                           and round(gramos_proteina) in self.RANGO_PROTEINAS 
-                                           and round(gramos_grasa) in self.RANGO_GRASAS)      
-                    else:
-                        check_saludable = True  
 
-                    # print('kcal:', kcal, '=', round(kcal), ' check_kcal:', check_kcal)
-                    # print('Saludable:', check_saludable)              
-
-                    if check_kcal and check_saludable:
+                    if check_kcal and fallas < 10:
                         agregar_receta = True
+                        fallas = 0
                         RecetaRandom.append([nombre, round(kcal,2), 
                                             round(gramos_carb,2), 
                                             round(gramos_proteina,2), 
                                             round(gramos_grasa,2)]
                                             )
+                    else:
+                        fallas += 1
+
+                        if fallas >= 10:
+                            # me rindo, agrego la receta aunque no cumpla
+                            fallas = 0
+                            agregar_receta = True
+                            RecetaRandom.append([nombre, round(kcal,2), 
+                                                round(gramos_carb,2), 
+                                                round(gramos_proteina,2), 
+                                                round(gramos_grasa,2)]
+                                                )
+
                 
                 
         result = np.array(RecetaRandom)
@@ -860,6 +865,7 @@ class Recomendador():
                             df_test='', df_val='',
                             min_ingredientes=5, max_ingredientes=15,
                             min_unidades=5, max_unidades=20,
+                            min_kcal=0, max_kcal= 9999999,
                             learning_rate = 1e-4,
                             batch_size = 8,
                             initial_epoch=0,
@@ -924,7 +930,8 @@ class Recomendador():
                                                                     numero_recetas=self.NUM_RECETAS, 
                                                                     min_ingredientes=min_ingredientes, 
                                                                     max_ingredientes=max_ingredientes,
-                                                                    min_unidades=min_unidades, max_unidades=max_unidades)
+                                                                    min_unidades=min_unidades, max_unidades=max_unidades,
+                                                                    min_kcal=min_kcal, max_kcal= max_kcal)
 
                
                 x, y = self.calcular_feature_vecs(dataset_entrenamiento, max_len=self.EMB_SIZE, save=savenumpy, verbose=verbose)
