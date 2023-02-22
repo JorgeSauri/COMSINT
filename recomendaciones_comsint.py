@@ -464,8 +464,7 @@ class Recomendador():
                                 'tazas',
                                 'cucharadas',
                                 'cucharaditas']
-        check_kcal = False
-        check_saludable = False
+        
 
         for i_recetas in tqdm(range(numero_recetas)):
                 nombre = ''
@@ -474,40 +473,48 @@ class Recomendador():
                 gramos_proteina = 0.0
                 gramos_grasa = 0.0
 
-                for i_ingredientes in range(np.random.randint(min_ingredientes, max_ingredientes+1)):
-                    # Elegir un ingrediente al azar el dataframe de nutricionales
-                    i_rand = np.random.randint(len(df))
-                    cant_rand = np.random.randint(min_unidades,max_unidades)
+                while (not agregar_receta):
+                    agregar_receta = False
+                    check_kcal = False
+                    check_saludable = False
 
-                    unidades = lista_medidas_chicas[np.random.randint(len(lista_medidas_chicas))]
+                    for i_ingredientes in range(np.random.randint(min_ingredientes, max_ingredientes+1)):
+                        # Elegir un ingrediente al azar el dataframe de nutricionales
+                        i_rand = np.random.randint(len(df))
+                        cant_rand = np.random.randint(min_unidades,max_unidades)
 
-                    cant_rand_gr = self.convertir_a_gramos(cant_rand, unidades)
+                        unidades = lista_medidas_chicas[np.random.randint(len(lista_medidas_chicas))]
 
-                    row_alimento = df.iloc[i_rand]
-                    nombre += str(cant_rand) + ' ' + unidades +' de ' + str(row_alimento['nombre']).lower().replace(',', ' ').strip() + ', '
-                    # Como el dataset de nutrición viene en porciones de 100g cada medida
-                    kcal += cant_rand_gr * (float(str(row_alimento['kcal']))/100)       
-                    gramos_carb += cant_rand_gr * (float(str(row_alimento['carbohydrate']).replace(' ', '').split('g')[0]) / 100)
-                    gramos_proteina += cant_rand_gr * (float(str(row_alimento['protein']).replace(' ', '').split('g')[0]) / 100)                               
-                    gramos_grasa += cant_rand_gr * (float(str(row_alimento['total_fat']).replace(' ', '').split('g')[0]) / 100)          
+                        cant_rand_gr = self.convertir_a_gramos(cant_rand, unidades)
 
-                nombre = nombre[:-2]
+                        row_alimento = df.iloc[i_rand]
+                        nombre += str(cant_rand) + ' ' + unidades +' de ' + str(row_alimento['nombre']).lower().replace(',', ' ').strip() + ', '
+                        # Como el dataset de nutrición viene en porciones de 100g cada medida
+                        kcal += cant_rand_gr * (float(str(row_alimento['kcal']))/100)       
+                        gramos_carb += cant_rand_gr * (float(str(row_alimento['carbohydrate']).replace(' ', '').split('g')[0]) / 100)
+                        gramos_proteina += cant_rand_gr * (float(str(row_alimento['protein']).replace(' ', '').split('g')[0]) / 100)                               
+                        gramos_grasa += cant_rand_gr * (float(str(row_alimento['total_fat']).replace(' ', '').split('g')[0]) / 100)          
 
-                # Tope de kcals:
-                if (kcal in range(min_kcal, max_kcal+1)): check_kcal = True
-                
-                # Si healty_only es True, solo acepta recetas en los rangos saludables
-                if healthy_only:
-                    check_saludable = (gramos_carb in self.RANGO_CARBOHIDRATOS 
-                                        and gramos_proteina in self.RANGO_PROTEINAS 
-                                        and gramos_grasa in self.RANGO_GRASAS)                        
+                    nombre = nombre[:-2]
 
-                if check_kcal and check_saludable:
-                    RecetaRandom.append([nombre, round(kcal,2), 
-                                        round(gramos_carb,2), 
-                                        round(gramos_proteina,2), 
-                                        round(gramos_grasa,2)]
-                                        )
+                    # Tope de kcals:
+                    if (kcal in range(min_kcal, max_kcal+1)): check_kcal = True
+                    
+                    # Si healty_only es True, solo acepta recetas en los rangos saludables
+                    if healthy_only:
+                        check_saludable = (gramos_carb in self.RANGO_CARBOHIDRATOS 
+                                            and gramos_proteina in self.RANGO_PROTEINAS 
+                                            and gramos_grasa in self.RANGO_GRASAS)      
+                    else:
+                        check_saludable = True                  
+
+                    if check_kcal and check_saludable:
+                        agregar_receta = True
+                        RecetaRandom.append([nombre, round(kcal,2), 
+                                            round(gramos_carb,2), 
+                                            round(gramos_proteina,2), 
+                                            round(gramos_grasa,2)]
+                                            )
                 
                 
         result = np.array(RecetaRandom)
