@@ -473,6 +473,7 @@ class Recomendador():
                 gramos_proteina = 0.0
                 gramos_grasa = 0.0
 
+                agregar_receta = False
                 while (not agregar_receta):
                     agregar_receta = False
                     check_kcal = False
