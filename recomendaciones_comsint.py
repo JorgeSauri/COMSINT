@@ -498,16 +498,22 @@ class Recomendador():
 
                     nombre = nombre[:-2]
 
+                    min_kcal = int(min_kcal)
+                    max_kcal = round(max_kcal)
+
                     # Tope de kcals:
-                    if (kcal in range(min_kcal, max_kcal+1)): check_kcal = True
+                    if (round(kcal) in range(min_kcal, max_kcal+1)): check_kcal = True
                     
                     # Si healty_only es True, solo acepta recetas en los rangos saludables
                     if healthy_only:
-                        check_saludable = (gramos_carb in self.RANGO_CARBOHIDRATOS 
-                                            and gramos_proteina in self.RANGO_PROTEINAS 
-                                            and gramos_grasa in self.RANGO_GRASAS)      
+                        check_saludable = (round(gramos_carb) in self.RANGO_CARBOHIDRATOS 
+                                           and round(gramos_proteina) in self.RANGO_PROTEINAS 
+                                           and round(gramos_grasa) in self.RANGO_GRASAS)      
                     else:
-                        check_saludable = True                  
+                        check_saludable = True  
+
+                    # print('kcal:', kcal, '=', round(kcal), ' check_kcal:', check_kcal)
+                    # print('Saludable:', check_saludable)              
 
                     if check_kcal and check_saludable:
                         agregar_receta = True
