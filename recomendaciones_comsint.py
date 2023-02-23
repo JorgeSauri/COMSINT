@@ -539,9 +539,9 @@ class Recomendador():
 
         return result
 
-    #########################
-    ## PRUEBA PRECIOS JORGE
-    ##########################
+    ###########################################################################
+    ## GENERAR DATASET ENTRENAMIENTO ALEATORIO PRECIOS PROFECO
+    ############################################################################
     def generar_dataset_entrenamiento_precios(self, 
                                     df_precios_profeco = 'lista_precios_profeco_2022.csv',                                   
                                     encoding='ISO-8859-1',
