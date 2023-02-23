@@ -1547,7 +1547,11 @@ class Recomendador():
 
         """
 
-        if (dfFiltrados == None): dfFiltrados = self.DF_RecetasFiltradas.copy()
+        if (dfFiltrados == None): 
+            print('Error: Se requiere pasar el dataset de recetas antes de ejecutar.')
+            print('dfFlitrados = <instancia de dataframe de pandas>\n')
+            
+            return
 
         # Para poder llamar a este método, debe haberse ejecutado antes ProcesarRecetas
         if (len(dfFiltrados) <= 0):
