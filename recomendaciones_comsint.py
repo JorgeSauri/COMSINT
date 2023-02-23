@@ -945,11 +945,15 @@ class Recomendador():
 
     ############################################################################################################
     ############################################################################################################
-    ## MÉTODO PARA ENTRENAR NUESTRO MODELO, YA SEA GENERANDO DATASETS DE RECETAS FICTICIAS
+    ## MÉTODOS PARA ENTRENAR NUESTROS MODELOS, YA SEA GENERANDO DATASETS DE RECETAS FICTICIAS
     ## O BIEN, CARGANDO UN DATASET REAL DE RECETAS EN CSV Y PRE-PROCESÁNDOLO PARA ENTRENAR
     ## TAMBIÉN RECIBE PARÁMETROS ESPECIALES PARA LA GENERACIÓN ALEATORIA DE RECETAS.
     ############################################################################################################
     ############################################################################################################
+    
+    ##################################################
+    #### MODELO DE PREDICCIÓN DE INFORMACIÓN NUTRICIONAL
+    ##################################################    
     def EntrenarModelo(self, df_nutricionales='nutricion.csv', 
                             df_training='',
                             df_test='', df_val='',
@@ -1086,6 +1090,98 @@ class Recomendador():
 
         return self.modeloCNN, history
 
+    ##################################################
+    #### MODELO DE PREDICCIÓN DE PRECIOS
+    ##################################################
+    def EntrenarModeloPrecios(self, df_precios='lista_precios_profeco_2022.csv', 
+                            min_ingredientes=5, max_ingredientes=15,
+                            min_unidades=15, max_unidades=21, 
+                            learning_rate = 1e-4,
+                            batch_size = 8,
+                            initial_epoch=0,
+                            epochs = 20,
+                            version =4, kernels=128,                   
+                            steps_per_epoch = None,                       
+                            verbose=True, save=True):
+        """
+        Entrenar el modelo de cálculo de precios de recetas
+
+        Parámetros:
+        @df_precios: El dataset de precios por gramo de alimentos con el que se arma el dataset de entrenamiento
+        @min_ingredientes: Mínimo de ingredientes a utilizar para el generador de recetas de entrenamiento
+        @max_ingredientes: Máximo de ingredientes a utilizar para el generador de recetas de entrenamiento
+        @min_unidades: Al generar un dataset de entrenamiento ficticio, la cantidad mínima de unidades a utilizar por el algoritmo
+        @max_unidades: Al generar un dataset de entrenamiento ficticio, la cantidad máxima de unidades a utilizar por el algoritmo
+        @learning_rate: La tasa de aprendizaje utilizada por el optimizador (Adam)
+        @batch_size: El tamaño de los lotes de entrenamiento
+        @epochs: El número de épocas a entrenar el modelo
+        @version: Un número interno que utilizamos para versionar nuestros modelos
+        @kernels: Un factor base para el número de kernels o filtros de las capas de convolución que será pasado
+                  al método GenerarModeloRegresionCNN (el cuál este método utiliza)
+        @verbose: Si es True, imprime información del proceso de entrenamiento
+        @save: Indica si se guardará automáticamente el modelo h5 en disco
+        @savenumpy: Indica si al generar arreglos numpy de entrenamiento, se guardarán en disco como archivos npy
+        
+        Devuelve: Una tupla con modelo entrenado y el history del entrenamiento -> (model, history)
+        """
+
+
+        dataset_entrenamiento = self.generar_dataset_entrenamiento_precios(
+                                                            df_precios_profeco=df_precios,
+                                                            numero_recetas=self.NUM_RECETAS, 
+                                                            min_ingredientes=min_ingredientes, 
+                                                            max_ingredientes=max_ingredientes,
+                                                            min_unidades=min_unidades, max_unidades=max_unidades
+                                                            )
+
+            
+        x, y = self.calcular_feature_vecs(dataset_entrenamiento, max_len=self.EMB_SIZE, save=False, verbose=verbose)
+
+        
+        x_train, x_test, y_train, y_test = train_test_split(x, y, train_size=0.8, shuffle=True)
+            
+        if (verbose):              
+           x_test, x_val, y_test, y_val = train_test_split(x, y, train_size=0.8, shuffle=True)
+    
+        # Utilizamos la utilería Dataset de TensorFlow para que gestione la alimentación de los datasets de 
+        # entrenamiento y no aparezcan errores por desbordamiento de memoria RAM o de RAM de GPU     
+        train_dataset = tf.data.Dataset.from_tensor_slices((x_train, y_train)).batch(batch_size)
+        test_dataset = tf.data.Dataset.from_tensor_slices((x_test, y_test)).batch(batch_size)
+
+        self.modeloCNN_precios = self.GenerarModeloRegresionCNN(input_shape=(x_train.shape[1]), 
+                                                        emb_size=self.EMB_SIZE, kernels=kernels,
+                                                        numero_salidas=y_train.shape[1])
+
+        # Utilizaremos como métrica de pérdida el MAE, ya que es un problema de regresión
+        self.modeloCNN_precios.compile(Adam(learning_rate=learning_rate), loss="mean_absolute_error", metrics=['mae'])
+        
+        if (verbose): self.modeloCNN_precios.summary()
+
+        # El modelo se guardará en la carpeta basedir + 'Modelos/'
+        archivo = self.basedir + 'Modelos/Modelo_Precios_FV_DistilBERT_0'+str(version)+'_EMBED-'+ str(self.EMB_SIZE) +'_CNN.h5'
+
+        check_file = os.path.isfile(archivo)
+
+        if check_file:
+            self.modeloCNN_precios = tf.keras.models.load_model(archivo)
+       
+        history = self.modeloCNN_precios.fit(train_dataset,
+                                            batch_size = batch_size,
+                                            epochs = epochs,
+                                            initial_epoch=initial_epoch,                                
+                                            steps_per_epoch=steps_per_epoch,
+                                            validation_data=test_dataset,                               
+                                            verbose=verbose)
+
+        if (save): 
+            self.modeloCNN_precios.save(archivo)
+            print('modelo guardado en:', archivo)
+
+        if (verbose): self.EvaluarModeloRegresion(['precio_prom_por_gramo'], history, x_val, y_val, self.modeloCNN_precios)   
+
+        return self.modeloCNN_precios, history
+
+
 
     ############################################################################################################
     ############################################################################################################
@@ -1095,25 +1191,42 @@ class Recomendador():
 
     def CargarModelo(self, emb_size=128, version=4):
         """
-        Carga un modelo existente desde archivo h5, utilizando el embedding size y la versión para
+        Carga los modelos existentes desde archivos h5, utilizando el embedding size y la versión para
         armar el nombre del archivo y cargarlo en la variable modeloCNN de esta clase. 
         
         El formato es: 
             Modelo_Nut_FV_DistilBERT_[VERSION]_EMBED-[EMB_SIZE]_CNN.h5
+            Modelo_Precios_FV_DistilBERT_[VERSION]_EMBED-[EMB_SIZE]_CNN.h5
+
             Donde [VERSION] es el número de versión que estamos entrenando o probando.
                   [EMB_SIZE] el tamaño de embeddings que se utilizó para codificar el texto con DistilBERT
         """
 
-        archivoC = self.basedir + 'Modelos/Modelo_Nut_FV_DistilBERT_0'+str(version)+'_EMBED-'+ str(emb_size) +'_CNN.h5'
-        check_fileC = os.path.isfile(archivoC)
+        # Modelo nutricional:
+        archivoN = self.basedir + 'Modelos/Modelo_Nut_FV_DistilBERT_0'+str(version)+'_EMBED-'+ str(emb_size) +'_CNN.h5'
+        check_fileN = os.path.isfile(archivoN)
 
-        if check_fileC:
-            self.modeloCNN = tf.keras.models.load_model(archivoC)
+        if check_fileN:
+            self.modeloCNN = tf.keras.models.load_model(archivoN)
             self.EMB_SIZE = emb_size
-            print('Modelo', archivoC, 'cargado con éxito.')
+            print('Modelo', archivoN, 'cargado con éxito.')
         else:
-            print('No se encontró el modelo', archivoC)
+            print('No se encontró el modelo', archivoN)
             print('Puedes crear uno nuevo con el método EntrenarModelo()\n')
+        
+        # Modelo de precios:
+        archivoP = self.basedir + 'Modelos/Modelo_Precios_FV_DistilBERT_0'+str(version)+'_EMBED-'+ str(emb_size) +'_CNN.h5'
+        check_fileP = os.path.isfile(archivoP)
+
+        if check_fileP:
+            self.modeloCNN_precios = tf.keras.models.load_model(archivoP)
+            self.EMB_SIZE = emb_size
+            print('Modelo', archivoP, 'cargado con éxito.')
+        else:
+            print('No se encontró el modelo', archivoP)
+            print('Puedes crear uno nuevo con el método EntrenarModelo()\n')
+                
+        
         return
 
 
