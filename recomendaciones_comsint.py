@@ -1213,6 +1213,7 @@ class Recomendador():
         # Modelo de precios:
         archivoP = self.basedir + 'Modelos/Modelo_Precios_FV_DistilBERT_0'+str(version)+'_EMBED-'+ str(emb_size) +'_CNN.h5'
         check_fileP = os.path.isfile(archivoP)
+        
 
         if check_fileP:
             self.modeloCNN_precios = tf.keras.models.load_model(archivoP)
