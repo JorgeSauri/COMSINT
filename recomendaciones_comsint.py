@@ -774,7 +774,7 @@ class Recomendador():
 
     ############################################################################################################
     ############################################################################################################
-    ## MODELO DE REGRESIÓN LINEAL PARA CÁLCULO DE INFORMACIÓN NUTRICIONAL
+    ## MODELO DE REGRESIÓN LINEAL PARA CÁLCULO DE INFORMACIÓN NUTRICIONAL Y PRECIOS
     ## TOMANDO COMO ENTRADA UN VECTOR DE CARACTERÍSTICAS GENERADO POR UN MODELO DE LENGUAJE.
     ############################################################################################################
     ############################################################################################################
@@ -782,7 +782,7 @@ class Recomendador():
     def GenerarModeloRegresionCNN(self, input_shape, emb_size, numero_salidas, kernels=128):
             """
             Devuelve un modelo de CNN 1D para aprender 
-            los patrones de ingredientes y sus valores nutricionales.
+            los patrones de ingredientes y sus valores nutricionales y sus precios.
 
             Parámetros:
             @input_shape: El shape de entrada o input shape del vector de características.
@@ -840,11 +840,7 @@ class Recomendador():
             # Construimos el modelo
             model = Model(inputs=input_tensor, outputs=output_tensor, name="ModeloCNNNut_"+str(kernels))
             model.build(input_shape)
-
-            # Guardamos el modelo en una propiedad de la clase
-            self.modeloCNN = model
-
-            # Y también retornamos el modelo
+            
             return model
 
 
