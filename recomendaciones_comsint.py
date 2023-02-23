@@ -437,6 +437,11 @@ class Recomendador():
         @usecols: Los nombres de las columnas del csv que se codificarán en el array
         @min_ingredientes: El número mínimo de ingredientes que puede tener una receta
         @max_ingredientes: El máximo número de ingredientes que puede tener una receta
+        @min_unidades: Número mínimo de unidades para un ingrediente
+        @max_unidades: Número máximo de unidades para un ingrediente
+        @min_kcal: Cantidad mínimo preferente de kcal de cada platillo
+        @max_kcal: Cantidad máximo preferente de kcal de cada platillo                                    
+        @numero_recetas: Número de recetas a generar
 
         Devuelve:
         - Un NumPy Array con dtype=string (Antes de usarlo, es necesario convertir los valores numéricos a float16 o float32 etc.) 
@@ -529,6 +534,91 @@ class Recomendador():
 
                 
                 
+        result = np.array(RecetaRandom)
+
+
+        return result
+
+    #########################
+    ## PRUEBA PRECIOS JORGE
+    ##########################
+    def generar_dataset_entrenamiento_precios(self, 
+                                    df_precios_profeco = 'lista_precios_profeco_2022.csv',                                   
+                                    encoding='ISO-8859-1',
+                                    usecols=['producto','precio_prom_por_gramo'],
+                                    min_ingredientes = 3,
+                                    max_ingredientes = 10, 
+                                    min_unidades = 5,
+                                    max_unidades = 20,                                    
+                                    numero_recetas=100):
+        """
+        Regresa un NumPy Array para entrenar un modelo de regresión de precios.
+        Por defecto se toman las columnas: 'producto','precio_prom_por_gramo'
+        Que son las columnas del dataframe de precios de profeco que usamos para entrenar.
+        El método toma al azar de min_ingredientes a max_ingredientes y genera también cantidades en gramos aleatorias.
+        Con esta información el método genera recetas ficticias con su correcto cálculo de precio promedio.
+        Este dataset ficticio puede usarse para entrenar modelos de regresión para el cálculo de precios.
+
+        Parámetros:
+        @df_precios_profeco: El dataframe de donde se toma la información de precios
+        @encoding: El formato de encoding del archivo csv, por ejemplo: UTF-8 o ISO-8859-1
+        @usecols: Los nombres de las columnas del csv que se codificarán en el array
+        @min_ingredientes: El número mínimo de ingredientes que puede tener una receta
+        @max_ingredientes: El máximo número de ingredientes que puede tener una receta
+        @min_unidades: Número mínimo de unidades para un ingrediente
+        @max_unidades: Número máximo de unidades para un ingrediente                                
+        @numero_recetas: Número de recetas a generar        
+
+        Devuelve:
+        - Un NumPy Array con dtype=string (Antes de usarlo, es necesario convertir los valores numéricos a float16 o float32 etc.) 
+        
+
+        Ejemplo:
+            dataset = generar_dataset_entrenamiento_precios(numero_recetas=1000, min_ingredientes=5, max_ingredientes=10)
+        """
+
+        if df_precios_profeco == '':
+            df = self.df_precios
+        else:
+            df = pd.read_csv(self.basedir + 'datasets/' + df_precios_profeco, encoding=encoding, usecols=usecols)
+        
+        
+        print('Generando', numero_recetas,' recetas aleatorias...\n')
+        
+        RecetaRandom = []
+
+        lista_medidas_chicas = ['onzas',
+                                'gramos',
+                                'mililitros',
+                                'piezas',
+                                'tazas',
+                                'cucharadas',
+                                'cucharaditas']
+        
+
+        for i_recetas in tqdm(range(numero_recetas)):
+                nombre = ''
+                precio_prom_gramo = 0.0
+
+                for i_ingredientes in range(np.random.randint(min_ingredientes, max_ingredientes+1)):
+                    
+                    # Elegir un ingrediente al azar el dataframe de precios
+                    i_rand = np.random.randint(len(df))
+                    cant_rand = np.random.randint(min_unidades,max_unidades)
+
+                    unidades = lista_medidas_chicas[np.random.randint(len(lista_medidas_chicas))]
+
+                    cant_rand_gr = self.convertir_a_gramos(cant_rand, unidades)
+
+                    row_alimento = df.iloc[i_rand]
+                    nombre += str(cant_rand) + ' ' + unidades +' de ' + str(row_alimento['nombre']).lower().replace(',', ' ').strip() + ', '
+                    # Como el dataset de nutrición viene en porciones de 100g cada medida
+                    precio_prom_gramo += cant_rand_gr * (float(str(row_alimento['precio_prom_por_gramo'])))       
+
+                nombre = nombre[:-2]
+                                    
+                RecetaRandom.append([nombre, round(precio_prom_gramo,2)])
+        
         result = np.array(RecetaRandom)
 
 
