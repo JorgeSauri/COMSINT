@@ -613,7 +613,7 @@ class Recomendador():
                     row_alimento = df.iloc[i_rand]
                     nombre += str(cant_rand) + ' ' + unidades +' de ' + str(row_alimento[usecols[0].strip()]).lower().replace(',', ' ').strip() + ', '
                     # Como el dataset de nutrición viene en porciones de 100g cada medida
-                    precio_prom_gramo += cant_rand_gr * (float(str(row_alimento[usecols[0].strip()])))       
+                    precio_prom_gramo += cant_rand_gr * (float(str(row_alimento[usecols[1]])))       
 
                 nombre = nombre[:-2]
                                     
