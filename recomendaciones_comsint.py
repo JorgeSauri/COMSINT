@@ -1288,7 +1288,66 @@ class Recomendador():
 
         return result
 
+    ############################################################################################################
+    ############################################################################################################
+    ## FUNCIÓN PARA PREDECIR COSTOS DADA UNA LISTA DE INGREDIENTES DE RECETAS
+    ############################################################################################################
+    ############################################################################################################
+    def PredecirPrecios(self, lista_ingredientes, 
+                            INFO_COLS=['precio_prom_por_gramo'], modelo=None, 
+                            emb_size=128, verbose=True):
+        """
+        Realiza una inferencia de los costos de platillos dada una lista de ingredientes.
 
+        Parámetros:
+        @lista_ingredientes: Un array con los ingredientes de cada receta
+        @INFO_COLS: La lista de columnas o features que se están infiriendo por regresión.
+        @modelo: El modelo de regresión que se utiliza para la inferencia (si es None, se utiliza self.modeloCNN_precios)
+        @emb_size: El espacio de embbedings que se utilizó para el encoding (es importante que sea el mismo que el modelo utilizado para las inferencias)
+        
+        Devuelve:
+        @Una lista tipo diccionario con las predicciones de los costos basado en la lista de ingredientes 
+        de las recetas proporcionada.        
+        """
+
+        if (modelo == None): modelo = self.modeloCNN_precios
+        
+
+        # Tokenizar y sacar feature vector
+        inputs = []
+        result = []
+        if (verbose):
+            print('Extrayendo vectores de características de los ingredientes...\n')
+            for i in tqdm(range(len(lista_ingredientes))):
+                ingredientes = lista_ingredientes[i]
+                inputs.append(np.reshape(self.get_feature_vectors(ingredientes, max_len=emb_size).flatten(), newshape=(1,-1)))
+        else:            
+            for i in range(len(lista_ingredientes)):
+                ingredientes = lista_ingredientes[i]
+                inputs.append(np.reshape(self.get_feature_vectors(ingredientes, max_len=emb_size).flatten(), newshape=(1,-1)))
+
+        inputs = np.array(inputs)
+        inputs = np.reshape(inputs, newshape=(len(lista_ingredientes), inputs.shape[2]))
+
+        # Predecir con el modelo entrenado
+        preds = modelo.predict(inputs)
+
+        for i_pred in range(len(preds)):
+            vals = preds[i_pred]
+            nutricion = dict()
+            nutricion['ingredientes'] = lista_ingredientes[i_pred]
+            for j in range(len(INFO_COLS)):
+                nutricion[INFO_COLS[j]] = vals[j]
+            result.append(nutricion)    
+
+        if (verbose):
+            for i in range(len(result)):           
+                row = result[i]
+                for entrada in row:            
+                    print(entrada,':', row[entrada])
+                print('---------------------------------------------------------------------------\n')               
+
+        return result
 
     ############################################################################################################
     ############################################################################################################
@@ -1298,7 +1357,7 @@ class Recomendador():
 
     def Calcular_InfoNutricional_from_List(self, lista_ingredientes_recetas, verbose=True):
         """
-        Calcula la información nutricional y los costos de acuerdo al una lista de strings
+        Calcula la información nutricional de acuerdo al una lista de strings
         con los ingredientes de recetas
 
         Parámetros:
@@ -1376,7 +1435,7 @@ class Recomendador():
     def Calcular_InfoNutricional(self, dfFiltrados=None, col_ingredientes='ingredientes', 
                                                         verbose=True, inline=False):
         """
-        Calcula la información nutricional y los costos de acuerdo al dataset
+        Calcula la información nutricional de acuerdo al dataset filtrado
         de información nutricional y al dataset de la canasta básica
 
         Parámetros:
@@ -1405,7 +1464,7 @@ class Recomendador():
         # 1. Extraer ingredientes individuales
         # 2. Calcular sus valores nutricionales
         # 3. Agregarlos al dataframe resultante
-        if (verbose): print('Calculando información nutricional y costos... \n')
+        if (verbose): print('Calculando información nutricional... \n')
 
         Calorias = []
         Proteinas = []
@@ -1464,3 +1523,58 @@ class Recomendador():
         if (inline): self.DF_RecetasFiltradas = dfFiltrados
 
         return dfFiltrados
+
+    ############################################################################################################
+    ############################################################################################################
+    ## CÁLCULO DE LOS PRECIOS DE RECETAS DE UN DATASET UTILIZANDO EL MODELO DE REGRESIÓN:
+    ############################################################################################################
+    ############################################################################################################
+
+    def Calcular_Precios(self, dfFiltrados=None, col_ingredientes='ingredientes', 
+                                                        verbose=True, inline=False):
+        """
+        Calcula los costos de acuerdo al dataset filtrado proporcionado
+
+        Parámetros:
+        @dfFiltrados: Un dataframe ya filtrado de preferencia sobre del cuál se insertarán columnas con info. nutricional (Si es none se utiliza self.DF_RecetasFiltradas)
+        @col_ingredientes: Nombre de la columna que contiene los ingredientes del dataframe de entrada
+        @verbose: Indica si se imprimen mensajes del proceso
+        @inline: Si es true, sobreescribe la variable DF_FILTRADOS de la clase
+        
+        Devuelve:
+        Una copia del dataframe filtrado de entrada con columna de precio del platillo
+
+        """
+
+        if (dfFiltrados == None): dfFiltrados = self.DF_RecetasFiltradas.copy()
+
+        # Para poder llamar a este método, debe haberse ejecutado antes ProcesarRecetas
+        if (len(dfFiltrados) <= 0):
+            print('No se encontraron recetas pre-seleccionadas.\nEjecuta el método FiltrarRecetario_por_CanastaBasica()\n')
+            return
+        
+
+        # Por cada receta:
+        # 1. Extraer ingredientes individuales
+        # 2. Calcular sus valores nutricionales
+        # 3. Agregarlos al dataframe resultante
+        if (verbose): print('Calculando costos de los platillos... \n')
+
+        Precios = []
+
+        recetas = [str(dfFiltrados.iloc[i][col_ingredientes]).strip() for i in range(len(dfFiltrados))]
+
+        costos = self.PredecirPrecios(recetas, ['precio_prom_por_gramo'], self.modeloCNN_precios, 
+                                      self.EMB_SIZE, verbose=verbose)
+
+        for i in range(len(costos)):
+            row = costos[i]              
+            costo = round(float(row['precio_prom_por_gramo']),2)
+            Precios.append(costo)
+                            
+        dfFiltrados['costo_receta'] = Precios
+
+
+        if (inline): self.DF_RecetasFiltradas = dfFiltrados
+
+        return dfFiltrados        
