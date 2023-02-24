@@ -65,7 +65,7 @@ form.addEventListener('submit', async function (event) {
             noresults.classList.add('hidden');
             for(i=0;i<recetas.length;i++){
             receta = recetas[i]
-                const row = table.insertRow();
+                const row = table.insertRow();        
                 row.insertCell().textContent = receta.nombre_del_platillo.slice(0,30);
                 row.insertCell().textContent = receta.ingredientes.slice(0,100) + '...';
                 row.insertCell().textContent = receta.puntaje_platillo;
