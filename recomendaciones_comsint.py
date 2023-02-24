@@ -338,6 +338,9 @@ class Recomendador():
 
         """
         
+        print('ingredientes recibidos:', lista_ingredientes)
+        print('ingredientes en caché:', self.cache_ingredientes)
+        
         # Si los ingredientes pasados al método son otros, reiniciamos el caché de feature vectors
         if lista_ingredientes.lower().strip() != self.cache_ingredientes.lower().strip():
             # Limpiar caché:
@@ -345,7 +348,6 @@ class Recomendador():
             self.CACHE = []    
             self.cache_ingredientes = lista_ingredientes.lower().strip()        
 
-        print('ingredientes recibidos:', lista_ingredientes)
 
         # Limpiar el dataframe de recetas
         if (lista_ingredientes.strip() == ''):
@@ -362,7 +364,7 @@ class Recomendador():
 
         print('Buscando recetas con ingredientes de la canasta básica... \n')
 
-        umbral = 0.1
+        umbral = 0.2
  
         tokensCanasta = [self.nlp(item) for item in canasta]
 
@@ -371,7 +373,7 @@ class Recomendador():
             #ingredientes_clean = self.LimpiarString(row[col_ingredientes])
             tokenIngredientes = self.nlp(row[col_ingredientes])
             similaridad = 0.0
-            #Un umbral para ir comparando cada ingrediente, solo los menores a 0.1 son muy distantes                       
+            #Un umbral para ir comparando cada ingrediente, solo los menores a 0.2 son muy distantes                       
             for token in tokensCanasta:   
                 tokenSim = tokenIngredientes.similarity(token)   
                 # Si está dentro del umbral, acumular las similitudes de cada ingrediente          

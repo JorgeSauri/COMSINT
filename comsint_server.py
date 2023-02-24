@@ -28,6 +28,10 @@ if max_recetas == None: max_recetas = -1
 print('Recetario: ', recetario)
 print('Máximo de recetas por petición:', max_recetas)
 
+basedir = ''
+Agente = Recomendador(basedir = basedir, fuente=recetario)
+Agente.CargarModelo(emb_size=128, version=4)
+
 @app.route("/")
 def index():
     return 'Servidor COMSINT recomendaciones está corriendo...'
@@ -65,10 +69,6 @@ def filtrar_recetas():
 
     if not request_correcto:       
         return 'Falló el request'
-
-    basedir = ''
-    Agente = Recomendador(basedir = basedir, fuente=recetario)
-    Agente.CargarModelo(emb_size=128, version=4)
 
     # Filtrar recetas con los parámetros recibidos
     try:
