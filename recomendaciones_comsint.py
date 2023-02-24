@@ -57,6 +57,9 @@ class Recomendador():
     RANGO_PROTEINAS = range(10, 36)
     RANGO_GRASAS = range(20, 36) 
 
+    CACHE = []
+    cache_ingredientes = ''
+
     def __init__(self,
                  basedir = '',
                  fuente='recetas.csv',
@@ -335,6 +338,12 @@ class Recomendador():
 
         """
         
+        # Si los ingredientes pasados al método son otros, reiniciamos el caché de feature vectors
+        if lista_ingredientes.lower().strip() != self.cache_ingredientes.lower().strip():
+            # Limpiar caché:
+            print('Limpiando caché...\n')
+            self.CACHE = []    
+            self.cache_ingredientes = lista_ingredientes.lower().strip()        
 
         print('ingredientes recibidos:', lista_ingredientes)
 
@@ -353,21 +362,23 @@ class Recomendador():
 
         print('Buscando recetas con ingredientes de la canasta básica... \n')
 
-        umbral = 0.3
+        umbral = 0.1
  
         tokensCanasta = [self.nlp(item) for item in canasta]
 
         for i in tqdm(range(len(self.df_recetario))):
             row = self.df_recetario.iloc[i]
-            ingredientes_clean = self.LimpiarString(row[col_ingredientes])
-            tokenIngredientes = self.nlp(ingredientes_clean)
+            #ingredientes_clean = self.LimpiarString(row[col_ingredientes])
+            tokenIngredientes = self.nlp(row[col_ingredientes])
             similaridad = 0.0
-            #Un umbral para ir comparando cada ingrediente, solo los menores a 0.3 son muy distantes
-            umbral = 0.3            
-            for token in tokensCanasta:
-                if tokenIngredientes.similarity(token) >= umbral:
-                    similaridad +=1
-            similaridad = similaridad / len(tokensCanasta)
+            #Un umbral para ir comparando cada ingrediente, solo los menores a 0.1 son muy distantes                       
+            for token in tokensCanasta:   
+                tokenSim = tokenIngredientes.similarity(token)   
+                # Si está dentro del umbral, acumular las similitudes de cada ingrediente          
+                if tokenSim >= umbral:
+                    similaridad += tokenSim
+                # Si es mayor a 1, la similaridad es lo que se pasa de 1 (ej. 1.70 = 0.70)
+                if similaridad > 1: similaridad = similaridad - 1
 
             if (similaridad >= similitud):
                 Platillos.append(row[col_title])
@@ -1275,15 +1286,40 @@ class Recomendador():
         # Tokenizar y sacar feature vector
         inputs = []
         result = []
+
+        # Si no hay caché, inicializar caché        
+        if len(self.CACHE) == 0:            
+            usarCache = False
+        else:
+            usarCache = True
+            print('Cargando ',len(self.CACHE),'recetas de caché...')
+
         if (verbose):
             print('Extrayendo vectores de características de los ingredientes...\n')
+            print()
             for i in tqdm(range(len(lista_ingredientes))):
                 ingredientes = lista_ingredientes[i]
-                inputs.append(np.reshape(self.get_feature_vectors(ingredientes, max_len=emb_size).flatten(), newshape=(1,-1)))
+                # Checamos si tenemos feature vectos en cache:
+                if usarCache:
+                    # Los cargamos de caché                    
+                    entrada_x = self.CACHE[i]
+                else:
+                    entrada_x = self.get_feature_vectors(ingredientes, max_len=emb_size).flatten()
+                    self.CACHE.append(entrada_x)
+
+                inputs.append(np.reshape(entrada_x, newshape=(1,-1)))
         else:            
             for i in range(len(lista_ingredientes)):
                 ingredientes = lista_ingredientes[i]
-                inputs.append(np.reshape(self.get_feature_vectors(ingredientes, max_len=emb_size).flatten(), newshape=(1,-1)))
+                # Checamos si tenemos feature vectos en cache:
+                if usarCache:
+                    # Los cargamos de caché
+                    entrada_x = self.CACHE[i]
+                else:
+                    entrada_x = self.get_feature_vectors(ingredientes, max_len=emb_size).flatten()  
+                    self.CACHE.append(entrada_x)
+                
+                inputs.append(np.reshape(entrada_x, newshape=(1,-1)))
 
         inputs = np.array(inputs)
         inputs = np.reshape(inputs, newshape=(len(lista_ingredientes), inputs.shape[2]))
@@ -1305,6 +1341,8 @@ class Recomendador():
                 for entrada in row:            
                     print(entrada,':', row[entrada])
                 print('---------------------------------------------------------------------------\n')               
+        
+        print('Recetas en caché:', len(self.CACHE))
 
         return result
 
@@ -1332,19 +1370,41 @@ class Recomendador():
 
         if (modelo == None): modelo = self.modeloCNN_precios
         
+        # Si no hay caché, inicializar caché       
+        if len(self.CACHE) == 0:             
+            usarCache = False
+        else:
+            usarCache = True
 
         # Tokenizar y sacar feature vector
         inputs = []
         result = []
+
         if (verbose):
             print('Extrayendo vectores de características de los ingredientes...\n')
             for i in tqdm(range(len(lista_ingredientes))):
                 ingredientes = lista_ingredientes[i]
-                inputs.append(np.reshape(self.get_feature_vectors(ingredientes, max_len=emb_size).flatten(), newshape=(1,-1)))
+                # Checamos si tenemos feature vectos en cache:
+                if usarCache:
+                    # Los cargamos de caché
+                    entrada_x = self.CACHE[i]
+                else:
+                    entrada_x = self.get_feature_vectors(ingredientes, max_len=emb_size).flatten()
+                    self.CACHE.append(entrada_x)
+
+                inputs.append(np.reshape(entrada_x, newshape=(1,-1)))
         else:            
             for i in range(len(lista_ingredientes)):
                 ingredientes = lista_ingredientes[i]
-                inputs.append(np.reshape(self.get_feature_vectors(ingredientes, max_len=emb_size).flatten(), newshape=(1,-1)))
+                # Checamos si tenemos feature vectos en cache:
+                if usarCache:
+                    # Los cargamos de caché
+                    entrada_x = self.CACHE[i]
+                else:
+                    entrada_x = self.get_feature_vectors(ingredientes, max_len=emb_size).flatten()  
+                    self.CACHE.append(entrada_x)
+               
+                inputs.append(np.reshape(entrada_x, newshape=(1,-1)))
 
         inputs = np.array(inputs)
         inputs = np.reshape(inputs, newshape=(len(lista_ingredientes), inputs.shape[2]))
@@ -1366,6 +1426,8 @@ class Recomendador():
                 for entrada in row:            
                     print(entrada,':', row[entrada])
                 print('---------------------------------------------------------------------------\n')               
+        
+        print('Recetas en caché:', len(self.CACHE))
 
         return result
 

@@ -77,6 +77,7 @@ def filtrar_recetas():
                                                   verbose=False)
         
         print(Agente.DF_RecetasFiltradas)
+        print('Recetas en caché:', len(Agente.CACHE))
 
         df_filtrado = Agente.Calcular_InfoNutricional(verbose=True)
         df_filtrado = df_filtrado[df_filtrado['puntaje_platillo']>=puntaje_nutricion]
