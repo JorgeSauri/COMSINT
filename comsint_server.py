@@ -20,7 +20,7 @@ parser.add_argument('-max_recetas', dest='max_recetas', required=False,
 args = parser.parse_args()
 
 recetario = args.recetario
-max_recetas = args.max_recetas
+max_recetas = int(args.max_recetas)
 
 if recetario == None: recetario = 'recetario_mexicano_small.csv'
 if max_recetas == None: max_recetas = -1
@@ -75,7 +75,7 @@ def filtrar_recetas():
         Agente.FiltrarRecetario_por_CanastaBasica(lista_ingredientes=ingredientes, 
                                                   similitud=similitud, max_rows=max_recetas, 
                                                   verbose=False)
-                                                  
+
         df_filtrado = Agente.Calcular_InfoNutricional(verbose=False)
         df_filtrado = df_filtrado[df_filtrado['puntaje_platillo']>=puntaje_nutricion]
         df_filtrado = Agente.Calcular_Precios(df_filtrado, verbose=False)
