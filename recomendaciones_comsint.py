@@ -361,7 +361,7 @@ class Recomendador():
             row = self.df_recetario.iloc[i]
             ingredientes_clean = self.LimpiarString(row[col_ingredientes])
             tokenIngredientes = self.nlp(ingredientes_clean)
-            similaridad = 0
+            similaridad = 0.0
             #Un umbral para ir comparando cada ingrediente, solo los menores a 0.3 son muy distantes
             umbral = 0.3            
             for token in tokensCanasta:
@@ -372,7 +372,7 @@ class Recomendador():
             if (similaridad >= similitud):
                 Platillos.append(row[col_title])
                 Ingredientes.append(row[col_ingredientes])
-                Sim.append(round(similaridad,3))
+                Sim.append(similaridad)
 
         dfFiltrados = pd.DataFrame(list(zip(Platillos, Ingredientes, Sim)),
                                    columns=['nombre_del_platillo', 'ingredientes', 'similitud'])
