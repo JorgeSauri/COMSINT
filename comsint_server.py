@@ -78,7 +78,7 @@ def filtrar_recetas():
 
         df_filtrado = Agente.Calcular_InfoNutricional(verbose=True)
         df_filtrado = df_filtrado[df_filtrado['puntaje_platillo']>=puntaje_nutricion]
-        df_filtrado = Agente.Calcular_Precios(df_filtrado, verbose=False)
+        df_filtrado = Agente.Calcular_Precios(df_filtrado, verbose=True)
         df_filtrado = df_filtrado[df_filtrado['costo_receta']<=max_precio].sort_values(by=['costo_receta','similitud','kcal'], ascending=True)
         resultados = df_filtrado.to_dict(orient='records')
     except:
