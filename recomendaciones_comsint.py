@@ -314,6 +314,7 @@ class Recomendador():
     ############################################################################################################
 
     def FiltrarRecetario_por_CanastaBasica(self,
+                          lista_ingredientes = '',
                           col_title='nombre_del_platillo', col_ingredientes='ingredientes',
                           similitud=0.6, max_rows=20, verbose=True):
         """
@@ -333,9 +334,15 @@ class Recomendador():
           Dataframe de pandas con las columnas: 'platillo', 'ingredientes', 'similitud'
 
         """
+        
+
+        print('ingredientes recibidos:', lista_ingredientes)
 
         # Limpiar el dataframe de recetas
-        canasta = ','.join([prod for prod in self.df_canasta['producto']])
+        if (lista_ingredientes.strip() == ''):
+            canasta = ','.join([prod for prod in self.df_canasta['producto']])
+        else:
+            canasta = lista_ingredientes.strip()
 
         # Limpiar el dataframe de información nutricional
         self.df_nutricion['nombre'] = self.df_nutricion['nombre'].str.lower()

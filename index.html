@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Recomendador de recetas</title>
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.min.css">
+	<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+	<div class="container">
+		<h1>Recomendador de recetas</h1>
+		<form>      
+            <div  class="container">    
+            <label for="ingredientes">Incluir Ingredientes de la Canasta Básica:</label>
+            <table id="ingredientes">              
+              <tbody id="tbody-ingredientes">
+              </tbody>
+            </table>
+            </div>
+      
+            
+            <div id="similitud_canasta" class="container">
+                <label for="similitud">Similitud:</label>
+                <input type="range" id="similitud" name="similitud" min="0.1" max="1.0" step="0.1" value="0.6" oninput="output.value = this.valueAsNumber.toFixed(1) * 100 + '%'">
+                <output id="output">60%</output>
+            </div>
+            
+         
+            <div class="container">
+            <label id="calidad-nutricional">Calidad nutricional: Regular</label>
+                <div class="estrellas" id="puntaje_recetas">
+                <span class="estrella prendida" data-value="0.3">&#9733;</span>
+                <span class="estrella prendida" data-value="0.7">&#9733;</span>
+                <span class="estrella" data-value="1.0">&#9733;</span>
+                </div>
+                <input type="hidden" id="puntaje" name="puntaje" value="0.7">  
+            </div>
+                     
+            <div  class="container">                                  
+            <label for="precio">Precio máximo:</label>
+            <input type="range" id="precio" name="precio" min="50" max="300" step="0.50" value="150" oninput="output_precio.value = '$' + this.valueAsNumber.toFixed(1)">
+            <output id="output_precio">$150</output>   
+            </div>
+
+            <div  class="container">  
+            <input type="submit" id="Enviar" name="btnEnviar" value="Mostrar Recomendaciones">
+            </div>
+		</form>
+
+        <div id="cargando" class="hidden">            
+            <img src="https://media.tenor.com/wpSo-8CrXqUAAAAi/loading-loading-forever.gif" width="64px" height="64px" alt="Cargando...">
+        </div>
+
+        <div id="no-results" class="hidden">
+            <table>
+                <thead>
+                    <tr>
+                        <th>No se encontraron resultados...</th>
+                    </tr>
+                </thead>
+            </table>            
+        </div>
+
+		<table id="recetas" class="hidden">
+			<thead>
+				<tr>
+					<th>Nombre</th>
+					<th>Ingredientes</th>
+					<th>Puntaje de nutrición</th>
+					<th>Precio</th>
+				</tr>
+			</thead>
+			<tbody>
+			</tbody>
+		</table>
+
+
+	</div>
+
+	<script src="script.js"></script>
+
+    <script>
+        const estrellas = document.querySelectorAll(".estrella");
+        const calidadNutricional = document.querySelector("#calidad-nutricional");
+      
+        let puntajePlatillo = 1.0;
+      
+        estrellas.forEach((estrella, index) => {
+          estrella.addEventListener("click", () => {
+            puntajePlatillo = parseFloat(estrella.dataset.value);
+            document.querySelector("#puntaje").value = puntajePlatillo;
+      
+            // Enciende o apaga estrellas
+            estrellas.forEach((e, i) => {
+              if (i <= index) {
+                e.classList.add("prendida");
+              } else {
+                e.classList.remove("prendida");
+              }
+            });
+      
+            // Cambia el label de calidad nutricional
+            if (puntajePlatillo === 0.3) {
+              calidadNutricional.textContent = "Calidad nutricional: Pobre";
+            } else if (puntajePlatillo === 0.7) {
+              calidadNutricional.textContent = "Calidad nutricional: Regular";
+            } else {
+              calidadNutricional.textContent = "Calidad nutricional: Buena";
+            }
+          });
+        });
+      </script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.1/papaparse.min.js"></script>
+    
+    <script>
+        const productos = [
+        "aceite mixto",
+        "arroz largo",
+        "azúcar estándar",
+        "harina de trigo",
+        "frijol flor de mayo",
+        "frijol negro",
+        "huevo blanco",
+        "carne molina sirloin 90-10",
+        "bistec diezmillo de res",
+        "aguacate hass",
+        "limón con semilla",
+        "guayaba",
+        "manzana golden",
+        "manzana starking",
+        "naranja mediana",
+        "papaya maradol",
+        "piña",
+        "plátano",
+        "sandía",
+        "calabaza italiana",
+        "chile poblano",
+        "chile serrano",
+        "cebolla bola",
+        "chayote sin espina",
+        "jitomate saladete",
+        "lechuga romana",
+        "papa alpha",
+        "pepino",
+        "tomate verde",
+        "zanahoria mediana"
+        ];
+
+        function generarTabla() {
+                const tbody = document.getElementById("tbody-ingredientes");
+                num_productos = productos.length;
+                num_cols = 5;
+                num_filas = Math.trunc(num_productos / num_cols);
+                i = 0;
+
+                for(r=0;r<num_filas;r++){
+                    const tr = document.createElement("tr");
+                    for(c=0;c<num_cols;c++){
+                        producto = productos[i];
+                        const tdNombre = document.createElement("td");     
+                        tdNombre.textContent = producto;  
+                        tr.appendChild(tdNombre); 
+                        const tdIncluir = document.createElement("td");
+                        const checkbox = document.createElement("input");
+                        checkbox.type = "checkbox";
+                        checkbox.name = "incluir";
+                        checkbox.value = producto;
+                        checkbox.checked = true;
+                        tdIncluir.appendChild(checkbox);
+                        tr.appendChild(tdIncluir);
+                        i++;
+                    }
+                    tbody.appendChild(tr);
+                }
+
+        }
+        
+        generarTabla();
+    </script>
+
+    <!-- script>
+        // Utilizamos Fetch API para obtener el archivo CSV
+        fetch('datasets/canasta_basica.csv')
+          .then(response => response.text())
+          .then(data => {
+            // Parseamos el CSV con Papa Parse
+            const parsedData = Papa.parse(data, { header: true });
+            const ingredientes = parsedData.data.map(item => item.ingrediente);
+      
+            // Creamos el HTML para la tabla
+            const tbody = document.getElementById('tbody-ingredientes');
+            for (const ingrediente of ingredientes) {
+              const tr = document.createElement('tr');
+              const tdIngrediente = document.createElement('td');
+              tdIngrediente.innerText = ingrediente;
+              const tdIncluir = document.createElement('td');
+              const checkbox = document.createElement('input');
+              checkbox.type = 'checkbox';
+              checkbox.name = 'ingrediente';
+              checkbox.value = ingrediente;
+              tdIncluir.appendChild(checkbox);
+              tr.appendChild(tdIngrediente);
+              tr.appendChild(tdIncluir);
+              tbody.appendChild(tr);
+            }
+          })
+          .catch(error => console.error(error));
+      </script -->
+
+
+</body>
+</html>
+
+<style>
+    #ingredientes {
+      margin-bottom: 1rem;
+    }
+
+    #similitud_canasta {
+      margin-bottom: 1.5rem;
+    }
+
+    #puntaje_recetas {
+      margin-bottom: 1.5rem;
+    }
+</style>
