@@ -8,19 +8,25 @@ app = Flask(__name__)
 # crea un objeto ArgumentParser
 parser = argparse.ArgumentParser(description='Script de Flask para recomendaciones.')
 
-# agrega un argumento para el archivo
+# agrega un argumento para el archivo de recetas
 parser.add_argument('-recetario', dest='recetario', required=False,
                     help='nombre del archivo CSV de datos con recetas')
+
+# agregar un argumento para el máximo de registros que arroja el primer filtrado de similitud
+parser.add_argument('-max_recetas', dest='max_recetas', required=False,
+                    help='Máximo de registros que arroja el filtrado de similitud con canasta básica (default = todos)')
 
 # parsea los argumentos de la línea de comandos
 args = parser.parse_args()
 
-# usa el valor del argumento del archivo
 recetario = args.recetario
+max_recetas = args.max_recetas
 
 if recetario == None: recetario = 'recetario_mexicano_small.csv'
+if max_recetas == None: max_recetas = -1
 
 print('Recetario: ', recetario)
+print('Máximo de recetas por petición:', max_recetas)
 
 @app.route("/")
 def index():
