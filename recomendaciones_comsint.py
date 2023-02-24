@@ -340,9 +340,9 @@ class Recomendador():
 
         # Limpiar el dataframe de recetas
         if (lista_ingredientes.strip() == ''):
-            canasta = ','.join([prod for prod in self.df_canasta['producto']])
+            canasta = [prod.lower().strip() for prod in self.df_canasta['producto']]
         else:
-            canasta = lista_ingredientes.strip()
+            canasta = lista_ingredientes.strip().split(',')
 
         # Limpiar el dataframe de información nutricional
         self.df_nutricion['nombre'] = self.df_nutricion['nombre'].str.lower()
@@ -352,12 +352,24 @@ class Recomendador():
         Sim = []
 
         print('Buscando recetas con ingredientes de la canasta básica... \n')
+
+        umbral = 0.3
+ 
+        tokensCanasta = [self.nlp(item) for item in canasta]
+
         for i in tqdm(range(len(self.df_recetario))):
             row = self.df_recetario.iloc[i]
             ingredientes_clean = self.LimpiarString(row[col_ingredientes])
             tokenIngredientes = self.nlp(ingredientes_clean)
-            similaridad = tokenIngredientes.similarity(self.nlp(canasta))
-            if similaridad > similitud:
+            similaridad = 0
+            #Un umbral para ir comparando cada ingrediente, solo los menores a 0.3 son muy distantes
+            umbral = 0.3            
+            for token in tokensCanasta:
+                if tokenIngredientes.similarity(token) >= umbral:
+                    similaridad +=1
+            similaridad = similaridad / len(tokensCanasta)
+
+            if (similaridad >= similitud):
                 Platillos.append(row[col_title])
                 Ingredientes.append(row[col_ingredientes])
                 Sim.append(round(similaridad,3))
