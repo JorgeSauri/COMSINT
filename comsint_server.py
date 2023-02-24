@@ -75,6 +75,8 @@ def filtrar_recetas():
         Agente.FiltrarRecetario_por_CanastaBasica(lista_ingredientes=ingredientes, 
                                                   similitud=similitud, max_rows=max_recetas, 
                                                   verbose=False)
+        
+        print(Agente.DF_RecetasFiltradas)
 
         df_filtrado = Agente.Calcular_InfoNutricional(verbose=True)
         df_filtrado = df_filtrado[df_filtrado['puntaje_platillo']>=puntaje_nutricion]
