@@ -354,8 +354,8 @@ class Recomendador():
         print('Buscando recetas con ingredientes de la canasta básica... \n')
         for i in tqdm(range(len(self.df_recetario))):
             row = self.df_recetario.iloc[i]
-            # ingredientes_clean = self.LimpiarString(row[col_ingredientes])
-            tokenIngredientes = self.nlp(row[col_ingredientes])
+            ingredientes_clean = self.LimpiarString(row[col_ingredientes])
+            tokenIngredientes = self.nlp(ingredientes_clean)
             similaridad = tokenIngredientes.similarity(self.nlp(canasta))
             if similaridad > similitud:
                 Platillos.append(row[col_title])
