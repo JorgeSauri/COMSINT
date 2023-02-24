@@ -316,7 +316,7 @@ class Recomendador():
     def FiltrarRecetario_por_CanastaBasica(self,
                           lista_ingredientes = '',
                           col_title='nombre_del_platillo', col_ingredientes='ingredientes',
-                          similitud=0.6, max_rows=20, verbose=True):
+                          similitud=0.6, max_rows=10, verbose=True):
         """
           Procesa el recetario cargado al instanciar la clase, y trata de encontrar las recetas más
           similares en cuanto a lista de ingredientes con el dataset de canasta básica.
