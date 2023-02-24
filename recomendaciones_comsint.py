@@ -1531,7 +1531,7 @@ class Recomendador():
     ############################################################################################################
     ############################################################################################################
 
-    def Calcular_Precios(self, dfFiltrados=None, col_ingredientes='ingredientes', 
+    def Calcular_Precios(self, dfFiltrados, col_ingredientes='ingredientes', 
                                                         verbose=True, inline=False):
         """
         Calcula los costos de acuerdo al dataset filtrado proporcionado
@@ -1547,17 +1547,15 @@ class Recomendador():
 
         """
 
-        if (dfFiltrados == None): 
-            print('Error: Se requiere pasar el dataset de recetas antes de ejecutar.')
-            print('dfFlitrados = <instancia de dataframe de pandas>\n')
-            
-            return
-
+        try:
         # Para poder llamar a este método, debe haberse ejecutado antes ProcesarRecetas
-        if (len(dfFiltrados) <= 0):
-            print('No se encontraron recetas pre-seleccionadas.\nEjecuta el método FiltrarRecetario_por_CanastaBasica()\n')
+            if (len(dfFiltrados) <= 0):
+                print('No se encontraron recetas pre-seleccionadas.\nEjecuta el método FiltrarRecetario_por_CanastaBasica()\n')
+                return
+        except:
+            print('ERROR al calcular precios de las recetas')
             return
-        
+            
 
         # Por cada receta:
         # 1. Extraer ingredientes individuales
