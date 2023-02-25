@@ -127,13 +127,18 @@ class Recomendador():
         # Dataframes:
         self.DF_RecetasFiltradas = None
 
-        if (fuente != ''): self.df_recetario = pd.read_csv(self.basedir + 'datasets/' + fuente, encoding=encoding)
+        if (fuente != ''): 
+            self.df_recetario = pd.read_csv(self.basedir + 'datasets/' + fuente, encoding=encoding)
+            self.fuente = fuente
+
         if (nutricion != ''): self.df_nutricion = pd.read_csv(self.basedir + 'datasets/' + nutricion, encoding=encoding)
         if (canasta != ''): self.df_canasta = pd.read_csv(self.basedir + 'datasets/' + canasta, encoding=encoding)
         if (precios != ''): self.df_precios = pd.read_csv(self.basedir + 'datasets/' + precios, encoding=encoding)
 
+        # Cargar e inicializar Modelo DistilBERT y su Tokenizer
+        self.DistilBert_tokenizer = DistilBertTokenizerFast.from_pretrained("distilbert-base-uncased")   
+        self.DistilBert_model = TFDistilBertModel.from_pretrained("distilbert-base-uncased", output_hidden_states=False) 
         
-
     ############################################################################################################
     ############################################################################################################
     ## UTILERÍAS AUXILIARES PARA LA CLASE
@@ -364,7 +369,7 @@ class Recomendador():
 
         print('Buscando recetas con ingredientes de la canasta básica... \n')
 
-        umbral = 0.2
+        umbral = 0.35
  
         tokensCanasta = [self.nlp(item) for item in canasta]
 
@@ -373,7 +378,7 @@ class Recomendador():
             #ingredientes_clean = self.LimpiarString(row[col_ingredientes])
             tokenIngredientes = self.nlp(row[col_ingredientes])
             similaridad = 0.0
-            #Un umbral para ir comparando cada ingrediente, solo los menores a 0.2 son muy distantes                       
+            #Un umbral para ir comparando cada ingrediente, solo los menores a 0.35 son muy distantes                       
             for token in tokensCanasta:   
                 tokenSim = tokenIngredientes.similarity(token)   
                 # Si está dentro del umbral, acumular las similitudes de cada ingrediente          
@@ -419,7 +424,7 @@ class Recomendador():
         cos_sim = tf.keras.losses.cosine_similarity(feature_vec1, feature_vec2)
         return cos_sim
 
-    def get_feature_vectors(self, ingredient_list, max_len=128):
+    def get_feature_vectors(self, ingredient_list, max_len=0):
         """
         Utiliza DistilBERT para obtener los vectores de características de una lista de ingredientes.
         Primero tokeniza el string de que recibe de entrada utilizando un BERT Tokenizer, 
@@ -435,14 +440,19 @@ class Recomendador():
 
         Regresa: Un vector NumPy de shape (max_len, 768)
         """
-        tokenizer = DistilBertTokenizerFast.from_pretrained("distilbert-base-uncased")   
-        model = TFDistilBertModel.from_pretrained("distilbert-base-uncased", output_hidden_states=False)   
+
+        if max_len == 0: max_len = self.EMB_SIZE
+        
+        tokenizer = self.DistilBert_tokenizer
+        model = self.DistilBert_model   
         input_ids = tf.constant(tokenizer.encode(ingredient_list, return_tensors='tf'))    
         input_ids = pad_sequences(input_ids, maxlen=max_len, padding='post')
         pooled_output = model(input_ids)[0]  
+        feature_vec = pooled_output.numpy().squeeze()                     
+        return feature_vec
+      
 
-        feature_vec = pooled_output.numpy().squeeze()
-        return feature_vec      
+             
 
     def generar_dataset_entrenamiento_nut(self, 
                                     df_nutricionales = '',                                   
@@ -934,9 +944,10 @@ class Recomendador():
 
     ############################################################################################################
     ############################################################################################################
-    ## CARGA DE ARCHIVOS NUMPY GUARDADOS EN DISCO
+    ## CARGAR ARCHIVOS NUMPY DE DISCO
     ############################################################################################################
     ############################################################################################################
+   
     def CargarNumpyRecetas(self, NUM_RECETAS, EMB_SIZE, verbose=True, sufix='_recetas_random'):
         """
         Carga los arreglos X e Y desde archivos tipo npy (NumPy).
@@ -1289,39 +1300,28 @@ class Recomendador():
         inputs = []
         result = []
 
-        # Si no hay caché, inicializar caché        
+        # Si no hay caché, inicializar caché en memoria     
         if len(self.CACHE) == 0:            
-            usarCache = False
+            usarCache = False                         
         else:
             usarCache = True
             print('Cargando ',len(self.CACHE),'recetas de caché...')
 
-        if (verbose):
-            print('Extrayendo vectores de características de los ingredientes...\n')
-            print()
-            for i in tqdm(range(len(lista_ingredientes))):
-                ingredientes = lista_ingredientes[i]
-                # Checamos si tenemos feature vectos en cache:
-                if usarCache:
-                    # Los cargamos de caché                    
-                    entrada_x = self.CACHE[i]
-                else:
-                    entrada_x = self.get_feature_vectors(ingredientes, max_len=emb_size).flatten()
-                    self.CACHE.append(entrada_x)
+        
+        print('Extrayendo vectores de características de los ingredientes...\n')
+        print()            
+        for i in tqdm(range(len(lista_ingredientes))):
+            ingredientes = lista_ingredientes[i]
+            # Checamos si tenemos feature vectos en cache:
+            if usarCache:
+                # Los cargamos de caché                    
+                entrada_x = self.CACHE[i]
+            else:            
+                entrada_x = self.get_feature_vectors(ingredientes, max_len=emb_size).flatten()
+                self.CACHE.append(entrada_x)                                     
 
-                inputs.append(np.reshape(entrada_x, newshape=(1,-1)))
-        else:            
-            for i in range(len(lista_ingredientes)):
-                ingredientes = lista_ingredientes[i]
-                # Checamos si tenemos feature vectos en cache:
-                if usarCache:
-                    # Los cargamos de caché
-                    entrada_x = self.CACHE[i]
-                else:
-                    entrada_x = self.get_feature_vectors(ingredientes, max_len=emb_size).flatten()  
-                    self.CACHE.append(entrada_x)
-                
-                inputs.append(np.reshape(entrada_x, newshape=(1,-1)))
+            inputs.append(np.reshape(entrada_x, newshape=(1,-1)))
+
 
         inputs = np.array(inputs)
         inputs = np.reshape(inputs, newshape=(len(lista_ingredientes), inputs.shape[2]))
