@@ -15,3 +15,4 @@ datasets/numpy/9_TEST_EMBED-512_DATA_Y.npy
 Modelos/Modelo_Nut_FV_DistilBERT_04_EMBED-512_CNN.h5
 Modelos/Modelo_Precios_FV_DistilBERT_04_EMBED-256_CNN.h5
 Modelos/Modelo_Precios_FV_DistilBERT_04_EMBED-512_CNN.h5
+.idea/.name

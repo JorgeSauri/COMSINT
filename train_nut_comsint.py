@@ -22,9 +22,9 @@ class Trainer:
         self.BATCHSIZE = batch_size
         self.ITER = it
         self.LR = lr
-	if verbose==0:
-		self.verbose = False
-	if verbose==1:
+        if verbose==0:
+            self.verbose = False
+        if verbose==1:
 		self.verbose = True
         self.rango_kcal = rango_kcal
         self.df_training = df_training
