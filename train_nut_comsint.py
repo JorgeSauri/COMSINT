@@ -22,10 +22,12 @@ class Trainer:
         self.BATCHSIZE = batch_size
         self.ITER = it
         self.LR = lr
+
         if verbose==0:
             self.verbose = False
         if verbose==1:
-		self.verbose = True
+		    self.verbose = True
+
         self.rango_kcal = rango_kcal
         self.df_training = df_training
         self.df_test = df_test 
@@ -151,7 +153,7 @@ verbose = args.verbose
 if verbose==None: 
 	verbose = 1
 else:
-	if verbose=>0:
+	if verbose>=0:
 		verbose = int(verbose)
 		if verbose>1: verbose = 1
 
