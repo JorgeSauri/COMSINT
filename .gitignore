@@ -2,3 +2,16 @@
 
 .idea/vcs.xml
 Modelos/Modelo_Nut_FV_DistilBERT_04_EMBED-256_CNN.h5
+datasets/numpy/7_VAL_EMBED-512_DATA_X.npy
+datasets/numpy/7_VAL_EMBED-512_DATA_Y.npy
+__pycache__/recomendaciones_comsint.cpython-310.pyc
+.idea/COMSINT.iml
+.idea/inspectionProfiles/profiles_settings.xml
+.idea/misc.xml
+.idea/modules.xml
+__pycache__/recomendaciones_comsint.cpython-38.pyc
+datasets/numpy/9_TEST_EMBED-512_DATA_X.npy
+datasets/numpy/9_TEST_EMBED-512_DATA_Y.npy
+Modelos/Modelo_Nut_FV_DistilBERT_04_EMBED-512_CNN.h5
+Modelos/Modelo_Precios_FV_DistilBERT_04_EMBED-256_CNN.h5
+Modelos/Modelo_Precios_FV_DistilBERT_04_EMBED-512_CNN.h5
