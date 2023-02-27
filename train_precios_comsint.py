@@ -22,7 +22,10 @@ class Trainer:
         self.BATCHSIZE = batch_size
         self.ITER = it
         self.LR = lr
-
+        if epochs == None:
+            self.EPOCHS = self.Agente.NUM_RECETAS // self.BATCHSIZE
+        else:
+            self.EPOCHS = int(epochs)
         self.version = 4
         
         return
@@ -31,10 +34,6 @@ class Trainer:
     def do_training(self):
 
         INITIAL_EPOCH = 0
-        if epochs == None:
-            self.EPOCHS = self.Agente.NUM_RECETAS // self.BATCHSIZE
-        else:
-            self.EPOCHS = int(epochs)
         MINU = 3 
         MAXU = 11  
 
@@ -48,7 +47,7 @@ class Trainer:
                                             learning_rate=self.LR,
                                             version=self.version, 
                                             initial_epoch = INITIAL_EPOCH,                             
-                                            epochs=INITIAL_EPOCH + EPOCHS, 
+                                            epochs=INITIAL_EPOCH + self.EPOCHS,
                                             min_ingredientes=5, max_ingredientes=11,                                  
                                             min_unidades=MINU, max_unidades=MAXU,
                                             batch_size=self.BATCHSIZE,
@@ -136,6 +135,7 @@ lr = float(lr)
 print('Recetario: ', recetario)
 print('Numero de recetas:', num_recetas)
 print('Batch size: ', batch_size)
+print('Epocas:', epochs)
 print('Learning rate:', lr)
 
 
