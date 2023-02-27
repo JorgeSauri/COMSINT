@@ -26,7 +26,7 @@ class Trainer:
         if verbose==0:
             self.verbose = False
         if verbose==1:
-		    self.verbose = True
+            self.verbose = True
 
         self.rango_kcal = rango_kcal
         self.df_training = df_training
@@ -153,9 +153,10 @@ verbose = args.verbose
 if verbose==None: 
 	verbose = 1
 else:
-	if verbose>=0:
-		verbose = int(verbose)
-		if verbose>1: verbose = 1
+    verbose = int(verbose)
+    if verbose>=0:
+        verbose = int(verbose)
+        if verbose>1: verbose = 1
 
 if recetario == None: recetario = 'recetario_mexicano_small.csv'
 if emb_size == None: emb_size = 128

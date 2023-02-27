@@ -126,7 +126,8 @@ verbose = args.verbose
 if verbose==None: 
 	verbose = 1
 else:
-	if verbose>=0:
+    verbose = int(verbose)
+    if verbose>=0:
 		verbose = int(verbose)
 		if verbose>1: verbose = 1
 
