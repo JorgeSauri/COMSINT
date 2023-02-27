@@ -16,21 +16,29 @@ parser.add_argument('-recetario', dest='recetario', required=False,
 parser.add_argument('-max_recetas', dest='max_recetas', required=False,
                     help='Máximo de registros que arroja el filtrado de similitud con canasta básica (default = todos)')
 
+# agregar un argumento para el tamaño de los embeddings
+parser.add_argument('-emb_size', dest='emb_size', required=False,
+                    help='Tamaño de embeddings del modelo (default=128)')
+
+
 # parsea los argumentos de la línea de comandos
 args = parser.parse_args()
 
 recetario = args.recetario
 max_recetas = int(args.max_recetas)
+emb_size = int(args.emb_size)
 
 if recetario == None: recetario = 'recetario_mexicano_small.csv'
 if max_recetas == None: max_recetas = -1
+if emb_size == None: emb_size = 128
 
 print('Recetario: ', recetario)
 print('Máximo de recetas por petición:', max_recetas)
+print('Embeddings size:', emb_size)
 
 basedir = ''
 Agente = Recomendador(basedir = basedir, fuente=recetario)
-Agente.CargarModelo(emb_size=128, version=4)
+Agente.CargarModelo(emb_size=emb_size, version=4)
 
 @app.route("/")
 def index():
