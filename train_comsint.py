@@ -174,3 +174,4 @@ print('Dataframe de validación:', df_val)
 ## Entrenar:
 trainer = Trainer()
 trainer.do_training()
+exit()
