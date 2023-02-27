@@ -22,6 +22,10 @@ class Trainer:
         self.BATCHSIZE = batch_size
         self.ITER = it
         self.LR = lr
+	if verbose==0:
+		self.verbose = False
+	if verbose==1:
+		self.verbose = True
         if epochs == None:
             self.EPOCHS = self.Agente.NUM_RECETAS // self.BATCHSIZE
         else:
@@ -52,7 +56,7 @@ class Trainer:
                                             min_unidades=MINU, max_unidades=MAXU,
                                             batch_size=self.BATCHSIZE,
                                             kernels=128,                                                                         
-                                            save=True, verbose=True)
+                                            save=True, verbose=self.verbose)
             INITIAL_EPOCH = history.epoch[-1]
 
             Histories.append(history)
@@ -92,6 +96,8 @@ parser.add_argument('-emb_size', dest='emb_size', required=False,
                     help='Tamaño de embeddings del modelo (default=128)')
 
 # parámetros para entrenamiento del modelo
+parser.add_argument('-verbose', dest='verbose', required=False,
+                    help='Indica si se muestran mensajes de evaluación del entrenamiento 1=Si | 0=No (default=Si)')
 parser.add_argument('-num_recetas', dest='num_recetas', required=False,
                     help='Número de recetas de entrenamiento (default=1000)')
 parser.add_argument('-batch_size', dest='batch_size', required=False,
@@ -114,6 +120,15 @@ batch_size = args.batch_size
 it = args.it
 lr = args.lr
 epochs = args.epochs
+verbose = args.verbose
+
+
+if verbose==None: 
+	verbose = 1
+else:
+	if verbose=>0:
+		verbose = int(verbose)
+		if verbose>1: verbose = 1
 
 
 

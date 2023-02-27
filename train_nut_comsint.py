@@ -22,6 +22,10 @@ class Trainer:
         self.BATCHSIZE = batch_size
         self.ITER = it
         self.LR = lr
+	if verbose==0:
+		self.verbose = False
+	if verbose==1:
+		self.verbose = True
         self.rango_kcal = rango_kcal
         self.df_training = df_training
         self.df_test = df_test 
@@ -64,7 +68,7 @@ class Trainer:
                                         min_ingredientes=5, max_ingredientes=11,                                        
                                         min_unidades=MINU, max_unidades=MAXU,  
                                         min_kcal=MINK, max_kcal= MAXK,                             
-                                        save=True, verbose=True)
+                                        save=True, verbose=self.verbose)
             INITIAL_EPOCH = history.epoch[-1]
 
             Histories.append(history)
@@ -105,6 +109,8 @@ parser.add_argument('-emb_size', dest='emb_size', required=False,
                     help='Tamaño de embeddings del modelo (default=128)')
 
 # parámetros para entrenamiento del modelo
+parser.add_argument('-verbose', dest='verbose', required=False,
+                    help='Indica si se muestran mensajes de evaluación del entrenamiento 1=Si | 0=No (default=Si)')
 parser.add_argument('-num_recetas', dest='num_recetas', required=False,
                     help='Número de recetas de entrenamiento (default=1000)')
 parser.add_argument('-batch_size', dest='batch_size', required=False,
@@ -139,7 +145,15 @@ rango_kcal = args.rango_kcal
 df_training = args.df_training
 df_test = args.df_test
 df_val = args.df_val
+verbose = args.verbose
 
+
+if verbose==None: 
+	verbose = 1
+else:
+	if verbose=>0:
+		verbose = int(verbose)
+		if verbose>1: verbose = 1
 
 if recetario == None: recetario = 'recetario_mexicano_small.csv'
 if emb_size == None: emb_size = 128
