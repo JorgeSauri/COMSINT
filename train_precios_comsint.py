@@ -123,7 +123,7 @@ if emb_size == None: emb_size = 128
 if num_recetas == None: num_recetas = 1000
 if batch_size == None: batch_size = 32
 if it == None: it = 1
-if lr == None: lr = 1e-4
+if lr == None: lr = 1e-3
 
 
 emb_size = int(emb_size)
