@@ -25,12 +25,19 @@ parser.add_argument('-emb_size', dest='emb_size', required=False,
 args = parser.parse_args()
 
 recetario = args.recetario
-max_recetas = int(args.max_recetas)
-emb_size = int(args.emb_size)
+max_recetas = args.max_recetas
+emb_size = args.emb_size
 
 if recetario == None: recetario = 'recetario_mexicano_small.csv'
-if max_recetas == None: max_recetas = -1
-if emb_size == None: emb_size = 128
+if max_recetas == None: 
+	max_recetas = -1
+else:
+	max_recetas = int(max_recetas)
+
+if emb_size == None: 
+	emb_size = 128
+else:
+	emb_size = int(emb_size)
 
 print('Recetario: ', recetario)
 print('Máximo de recetas por petición:', max_recetas)
