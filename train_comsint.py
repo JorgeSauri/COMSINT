@@ -95,7 +95,7 @@ class Trainer:
 
 
 # crea un objeto ArgumentParser
-parser = argparse.ArgumentParser(description='Script de Flask para recomendaciones.')
+parser = argparse.ArgumentParser(description='Script de entrenamiento para sistema de recomendaciones.')
 
 # agrega un argumento para el archivo de recetas
 parser.add_argument('-recetario', dest='recetario', required=False,
@@ -158,8 +158,8 @@ lr = float(lr)
 
 
 if df_training==None: df_training=''
-if df_test==None: df_test=''
-if df_val==None: df_val=''
+if df_test==None: df_test='recetas_test.csv'
+if df_val==None: df_val='recetas_val.csv'
 
 
 print('Recetario: ', recetario)
