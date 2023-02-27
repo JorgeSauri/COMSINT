@@ -13,7 +13,7 @@ class Trainer:
 
     def __init__(self):
         print('-------------------------------------------------------------')
-        print('Inicializando Recomendador de recetas para entrenamiento de nutrición...\n')
+        print('Inicializando Recomendador de recetas para entrenamiento de precios...\n')
         self.Agente = Recomendador(basedir = self.basedir, fuente=recetario)
         self.Agente.CargarModelo(emb_size=emb_size, version=4)
 
@@ -22,10 +22,6 @@ class Trainer:
         self.BATCHSIZE = batch_size
         self.ITER = it
         self.LR = lr
-        self.rango_kcal = rango_kcal
-        self.df_training = df_training
-        self.df_test = df_test 
-        self.df_val = df_val 
 
         self.version = 4
         
@@ -39,32 +35,25 @@ class Trainer:
             self.EPOCHS = self.Agente.NUM_RECETAS // self.BATCHSIZE
         else:
             self.EPOCHS = int(epochs)
+        MINU = 3 
+        MAXU = 11  
 
         Histories = []
         for iteracion in range(self.ITER):
-            MINU = 3 
-            MAXU = 11  
-                       
-            MINK, MAXK = self.rango_kcal
             print('\nITERACIÓN:', iteracion+1)
-            print('min unidades:',MINU, ' max unidades:', MAXU)
-            print('min kcal:', MINK, ' max kcal:', MAXK)
             print('Entrenando desde epoch', INITIAL_EPOCH)
             print('------------------------------------------\n')
-            modelo, history = self.Agente.EntrenarModelo(df_nutricionales='nutricion_mejorado.csv',
-                                        df_training = self.df_training,
-                                        df_test = self.df_test, 
-                                        df_val = self.df_val,
-                                        learning_rate=self.LR,
-                                        version=self.version, 
-                                        initial_epoch = INITIAL_EPOCH,                             
-                                        epochs=INITIAL_EPOCH + self.EPOCHS, 
-                                        batch_size=self.BATCHSIZE,
-                                        kernels=128,                                             
-                                        min_ingredientes=5, max_ingredientes=11,                                        
-                                        min_unidades=MINU, max_unidades=MAXU,  
-                                        min_kcal=MINK, max_kcal= MAXK,                             
-                                        save=True, verbose=True)
+            modelo, history = self.Agente.EntrenarModeloPrecios(
+                                            df_precios='lista_precios_profeco_2022.csv',                                   
+                                            learning_rate=self.LR,
+                                            version=self.version, 
+                                            initial_epoch = INITIAL_EPOCH,                             
+                                            epochs=INITIAL_EPOCH + EPOCHS, 
+                                            min_ingredientes=5, max_ingredientes=11,                                  
+                                            min_unidades=MINU, max_unidades=MAXU,
+                                            batch_size=self.BATCHSIZE,
+                                            kernels=128,                                                                         
+                                            save=True, verbose=True)
             INITIAL_EPOCH = history.epoch[-1]
 
             Histories.append(history)
@@ -78,8 +67,7 @@ class Trainer:
     
     
     def Evaluar(self):
-        
-      
+
         for i in range(len(self.Histories)):
             history = self.Histories[i]    
             pd.DataFrame(history.history).plot()
@@ -115,14 +103,6 @@ parser.add_argument('-it', dest='it', required=False,
                     help='Iteraciones (default=1)')
 parser.add_argument('-lr', dest='lr', required=False,
                     help='Learning rate (default=1e-4)')
-parser.add_argument('-rango_kcal', dest='rango_kcal', required=False,
-                    help='Rango kcal de recetas entrenamiento (tupla: (250, 2500) )')
-parser.add_argument('-df_training', dest='df_training', required=False,
-                    help='Dataframe de entrenamiento csv')
-parser.add_argument('-df_test', dest='df_test', required=False,
-                    help='Dataframe de testing csv')
-parser.add_argument('-df_val', dest='df_val', required=False,
-                    help='Dataframe de validación csv')
 
 
 # parsea los argumentos de la línea de comandos
@@ -132,13 +112,10 @@ recetario = args.recetario
 emb_size = args.emb_size
 num_recetas = args.num_recetas
 batch_size = args.batch_size
-epochs = args.epochs
 it = args.it
 lr = args.lr
-rango_kcal = args.rango_kcal
-df_training = args.df_training
-df_test = args.df_test
-df_val = args.df_val
+epochs = args.epochs
+
 
 
 if recetario == None: recetario = 'recetario_mexicano_small.csv'
@@ -147,10 +124,7 @@ if num_recetas == None: num_recetas = 1000
 if batch_size == None: batch_size = 32
 if it == None: it = 1
 if lr == None: lr = 1e-4
-if rango_kcal == None: 
-    rango_kcal = (250, 2500)
-else:
-    rango_kcal = int(rango_kcal.split(',')[0][1:]), int(rango_kcal.split(',')[1][0:-1])
+
 
 emb_size = int(emb_size)
 num_recetas = int(num_recetas)
@@ -159,19 +133,11 @@ it = int(it)
 lr = float(lr)
 
 
-if df_training==None: df_training=''
-if df_test==None: df_test='recetas_test.csv'
-if df_val==None: df_val='recetas_val.csv'
-
-
 print('Recetario: ', recetario)
 print('Numero de recetas:', num_recetas)
 print('Batch size: ', batch_size)
 print('Learning rate:', lr)
-print('Rango de kcal:', rango_kcal)
-print('Dataframe de entrenamiento:', df_training)
-print('Dataframe de testing:', df_test)
-print('Dataframe de validación:', df_val)
+
 
 ## Entrenar:
 trainer = Trainer()
