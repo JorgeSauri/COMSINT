@@ -67,7 +67,7 @@ class Trainer:
                                         epochs=INITIAL_EPOCH + self.EPOCHS, 
                                         batch_size=self.BATCHSIZE,
                                         kernels=128,                                             
-                                        min_ingredientes=5, max_ingredientes=11,                                        
+                                        min_ingredientes=3, max_ingredientes=11,                                        
                                         min_unidades=MINU, max_unidades=MAXU,  
                                         min_kcal=MINK, max_kcal= MAXK,                             
                                         save=True, verbose=self.verbose)
