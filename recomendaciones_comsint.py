@@ -505,7 +505,7 @@ class Recomendador():
             df = pd.read_csv(self.basedir + 'datasets/' + df_nutricionales, encoding=encoding, usecols=usecols)
         
         
-        print('Generando', numero_recetas,' recetas aleatorias...\n')
+        print('Generando', numero_recetas,' recetas aleatorias, esto puede tardar varios minutos...')
         
         RecetaRandom = []
 
@@ -518,6 +518,8 @@ class Recomendador():
                                 'cucharaditas']
         
         recetas_que_cumplen = 0
+        num_recetas_saludables = 0
+        forzar_saludables = False
 
         while (recetas_que_cumplen < numero_recetas):            
                 nombre = ''
@@ -551,6 +553,23 @@ class Recomendador():
                         gramos_proteina += cant_rand_gr * (float(str(row_alimento['protein']).replace(' ', '').split('g')[0]) / 100)                               
                         gramos_grasa += cant_rand_gr * (float(str(row_alimento['total_fat']).replace(' ', '').split('g')[0]) / 100)          
 
+
+                    # Checar si es saludable
+                    p_carb = round(((gramos_carb*4) / kcal)*100)
+                    p_prot = round(((gramos_proteina*4) / kcal)*100)
+                    p_grasas = round(((gramos_grasa*4) / kcal)*100)
+                    
+                   
+                    saludable = (p_carb in self.RANGO_CARBOHIDRATOS and
+                                p_prot in self.RANGO_PROTEINAS and
+                                p_grasas in self.RANGO_GRASAS)
+                    
+                    # La mitad del dataset debe ser saludable:
+                    if num_recetas_saludables >= numero_recetas // 2:
+                        forzar_saludables = False
+                    else:
+                        forzar_saludables = True
+
                     nombre = nombre[:-2]
 
                     min_kcal = int(min_kcal)
@@ -558,10 +577,14 @@ class Recomendador():
 
                     # Tope de kcals:
                     if (round(kcal) in range(min_kcal, max_kcal+1)): check_kcal = True
-                    
+
+                    # Verifica si tiene que ser saludable
+                    if forzar_saludables:
+                        check_kcal = check_kcal and saludable                    
 
                     if check_kcal and fallas < 10:
                         agregar_receta = True
+                        num_recetas_saludables +=1
                         fallas = 0
                         RecetaRandom.append([nombre, round(kcal,2), 
                                             round(gramos_carb,2), 
