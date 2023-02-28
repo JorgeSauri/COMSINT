@@ -128,8 +128,8 @@ if verbose==None:
 else:
     verbose = int(verbose)
     if verbose>=0:
-		verbose = int(verbose)
-		if verbose>1: verbose = 1
+        verbose = int(verbose)
+        if verbose>1: verbose = 1
 
 
 

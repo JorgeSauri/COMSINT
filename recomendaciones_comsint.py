@@ -464,7 +464,8 @@ class Recomendador():
                                     max_unidades = 20,
                                     min_kcal = 0,
                                     max_kcal = 10000,                                    
-                                    numero_recetas=100):
+                                    numero_recetas=100,
+                                    _INTENTOS=5):
         """
         Regresa un NumPy Array para entrenar un modelo de regresión.
         Por defecto se toman las columnas: 'nombre', 'kcal','carbohydrate', 'protein', 'total_fat'
@@ -484,6 +485,11 @@ class Recomendador():
         @min_kcal: Cantidad mínimo preferente de kcal de cada platillo
         @max_kcal: Cantidad máximo preferente de kcal de cada platillo                                    
         @numero_recetas: Número de recetas a generar
+        @_INTENTOS: Un hyperparámetro que indica cuantas veces intenta generar una combinación con 
+                    cantidades aleatorias de gramos y cantidades aleatorias de ingredientes, la cuál
+                    cumpla con el requerimiento del rango de kcal. 
+                    (Al final, si el número de intentos se pasa de _INTENTOS, las recetas fuera
+                     del rango serán eliminadas para no desbalancear el dataset resultante).
 
         Devuelve:
         - Un NumPy Array con dtype=string (Antes de usarlo, es necesario convertir los valores numéricos a float16 o float32 etc.) 
@@ -511,8 +517,9 @@ class Recomendador():
                                 'cucharadas',
                                 'cucharaditas']
         
+        recetas_que_cumplen = 0
 
-        for i_recetas in tqdm(range(numero_recetas)):
+        while (recetas_que_cumplen < numero_recetas):            
                 nombre = ''
                 kcal = 0.0
                 gramos_carb = 0.0
@@ -525,7 +532,7 @@ class Recomendador():
                 while (not agregar_receta):
                     agregar_receta = False
                     check_kcal = False
-                                                                      
+                                                                    
                     for i_ingredientes in range(np.random.randint(min_ingredientes, max_ingredientes+1)):
                         
                         # Elegir un ingrediente al azar el dataframe de nutricionales
@@ -564,20 +571,23 @@ class Recomendador():
                     else:
                         fallas += 1
 
-                        if fallas >= 10:
-                            # me rindo, agrego la receta aunque no cumpla
+                        if fallas >= _INTENTOS:
+                            # me rindo, agrego receta en ceros
                             fallas = 0
                             agregar_receta = True
-                            RecetaRandom.append([nombre, round(kcal,2), 
-                                                round(gramos_carb,2), 
-                                                round(gramos_proteina,2), 
-                                                round(gramos_grasa,2)]
+                            RecetaRandom.append(['', 0, 
+                                                0, 
+                                                0, 
+                                                0]
                                                 )
-
                 
-                
-        result = np.array(RecetaRandom)
+                result = np.array(RecetaRandom)
 
+                #Eliminar elementos que se salen de los rangos
+                result = pd.DataFrame(result, columns=['ingredientes', 'kcal', 'carbs', 'prot', 'grasas']) 
+                result = result[result['kcal']!='0'].to_numpy()
+                recetas_que_cumplen = len(result)
+                
 
         return result
 
