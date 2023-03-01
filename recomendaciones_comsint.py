@@ -57,7 +57,7 @@ class Recomendador():
     RANGO_PROTEINAS = range(10, 36)
     RANGO_GRASAS = range(20, 36) 
 
-    CACHE = []
+    
     cache_ingredientes = ''
 
     def __init__(self,
@@ -349,8 +349,7 @@ class Recomendador():
         # Si los ingredientes pasados al método son otros, reiniciamos el caché de feature vectors
         if lista_ingredientes.lower().strip() != self.cache_ingredientes.lower().strip():
             # Limpiar caché:
-            print('Limpiando caché...\n')
-            self.CACHE = []    
+            print('Limpiando caché...\n')            
             self.cache_ingredientes = lista_ingredientes.lower().strip()        
 
 
@@ -1071,20 +1070,15 @@ class Recomendador():
             x, y = self.calcular_feature_vecs(recetas_train, max_len=self.EMB_SIZE, save=savenumpy, verbose=verbose)
 
         else:
-
-            # Cargar los arrays de disco
-            x, y = self.CargarNumpyRecetas(self.NUM_RECETAS, self.EMB_SIZE, verbose=verbose)
-
-            if len(x)== 0 or len(y)==0:
-                dataset_entrenamiento = self.generar_dataset_entrenamiento_nut(df_nutricionales=df_nutricionales,
-                                                                    numero_recetas=self.NUM_RECETAS, 
-                                                                    min_ingredientes=min_ingredientes, 
-                                                                    max_ingredientes=max_ingredientes,
-                                                                    min_unidades=min_unidades, max_unidades=max_unidades,
-                                                                    min_kcal=min_kcal, max_kcal= max_kcal)
+            dataset_entrenamiento = self.generar_dataset_entrenamiento_nut(df_nutricionales=df_nutricionales,
+                                                                numero_recetas=self.NUM_RECETAS, 
+                                                                min_ingredientes=min_ingredientes, 
+                                                                max_ingredientes=max_ingredientes,
+                                                                min_unidades=min_unidades, max_unidades=max_unidades,
+                                                                min_kcal=min_kcal, max_kcal= max_kcal)
 
                
-                x, y = self.calcular_feature_vecs(dataset_entrenamiento, max_len=self.EMB_SIZE, save=savenumpy, verbose=verbose)
+            x, y = self.calcular_feature_vecs(dataset_entrenamiento, max_len=self.EMB_SIZE, save=savenumpy, verbose=verbose)
 
         if (df_test == ''): #Si no proporcionas un dataframe de test, generarlo:
             x_train, x_test, y_train, y_test = train_test_split(x, y, train_size=0.8, shuffle=True)
@@ -1319,26 +1313,12 @@ class Recomendador():
         inputs = []
         result = []
 
-        # Si no hay caché, inicializar caché en memoria     
-        if len(self.CACHE) == 0:            
-            usarCache = False                         
-        else:
-            usarCache = True
-            print('Cargando ',len(self.CACHE),'recetas de caché...')
-
         
         print('Extrayendo vectores de características de los ingredientes...\n')
         print()            
         for i in tqdm(range(len(lista_ingredientes))):
-            ingredientes = lista_ingredientes[i]
-            # Checamos si tenemos feature vectos en cache:
-            if usarCache:
-                # Los cargamos de caché                    
-                entrada_x = self.CACHE[i]
-            else:            
-                entrada_x = self.get_feature_vectors(ingredientes, max_len=emb_size).flatten()
-                self.CACHE.append(entrada_x)                                     
-
+            ingredientes = lista_ingredientes[i]        
+            entrada_x = self.get_feature_vectors(ingredientes, max_len=emb_size).flatten()
             inputs.append(np.reshape(entrada_x, newshape=(1,-1)))
 
 
@@ -1363,7 +1343,6 @@ class Recomendador():
                     print(entrada,':', row[entrada])
                 print('---------------------------------------------------------------------------\n')               
         
-        print('Recetas en caché:', len(self.CACHE))
 
         return result
 
@@ -1391,11 +1370,6 @@ class Recomendador():
 
         if (modelo == None): modelo = self.modeloCNN_precios
         
-        # Si no hay caché, inicializar caché       
-        if len(self.CACHE) == 0:             
-            usarCache = False
-        else:
-            usarCache = True
 
         # Tokenizar y sacar feature vector
         inputs = []
@@ -1405,26 +1379,12 @@ class Recomendador():
             print('Extrayendo vectores de características de los ingredientes...\n')
             for i in tqdm(range(len(lista_ingredientes))):
                 ingredientes = lista_ingredientes[i]
-                # Checamos si tenemos feature vectos en cache:
-                if usarCache:
-                    # Los cargamos de caché
-                    entrada_x = self.CACHE[i]
-                else:
-                    entrada_x = self.get_feature_vectors(ingredientes, max_len=emb_size).flatten()
-                    self.CACHE.append(entrada_x)
-
+                entrada_x = self.get_feature_vectors(ingredientes, max_len=emb_size).flatten()
                 inputs.append(np.reshape(entrada_x, newshape=(1,-1)))
         else:            
             for i in range(len(lista_ingredientes)):
                 ingredientes = lista_ingredientes[i]
-                # Checamos si tenemos feature vectos en cache:
-                if usarCache:
-                    # Los cargamos de caché
-                    entrada_x = self.CACHE[i]
-                else:
-                    entrada_x = self.get_feature_vectors(ingredientes, max_len=emb_size).flatten()  
-                    self.CACHE.append(entrada_x)
-               
+                entrada_x = self.get_feature_vectors(ingredientes, max_len=emb_size).flatten()                  
                 inputs.append(np.reshape(entrada_x, newshape=(1,-1)))
 
         inputs = np.array(inputs)
@@ -1448,8 +1408,7 @@ class Recomendador():
                     print(entrada,':', row[entrada])
                 print('---------------------------------------------------------------------------\n')               
         
-        print('Recetas en caché:', len(self.CACHE))
-
+      
         return result
 
     ############################################################################################################
