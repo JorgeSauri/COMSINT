@@ -601,7 +601,9 @@ class Recomendador():
                                     min_ingredientes = 3,
                                     max_ingredientes = 10, 
                                     min_unidades = 5,
-                                    max_unidades = 20,                                    
+                                    max_unidades = 20, 
+                                    min_precio = 50,
+                                    max_precio = 1000,                              
                                     numero_recetas=100):
         """
         Regresa un NumPy Array para entrenar un modelo de regresión de precios.
@@ -648,7 +650,10 @@ class Recomendador():
                                 'cucharaditas']
         
 
-        for i_recetas in tqdm(range(numero_recetas)):
+        #for i_recetas in tqdm(range(numero_recetas)):
+        finished = False
+        i_recetas = 0
+        while i_recetas < numero_recetas:
                 nombre = ''
                 precio_prom_gramo = 0.0
 
@@ -668,8 +673,10 @@ class Recomendador():
                     precio_prom_gramo += cant_rand_gr * (float(str(row_alimento[usecols[1]])))       
 
                 nombre = nombre[:-2]
-                                    
-                RecetaRandom.append([nombre, round(precio_prom_gramo,2)])
+
+                if precio_prom_gramo >= min_precio and precio_prom_gramo <=max_precio:
+                    RecetaRandom.append([nombre, round(precio_prom_gramo,2)])
+                    i_recetas +=1
         
         result = np.array(RecetaRandom)
 
@@ -1145,6 +1152,7 @@ class Recomendador():
     def EntrenarModeloPrecios(self, df_precios='lista_precios_profeco_2022.csv', 
                             min_ingredientes=5, max_ingredientes=15,
                             min_unidades=15, max_unidades=21, 
+                            min_precio = 50, max_precio=1000,
                             learning_rate = 1e-4,
                             batch_size = 8,
                             initial_epoch=0,
@@ -1180,7 +1188,8 @@ class Recomendador():
                                                             numero_recetas=self.NUM_RECETAS, 
                                                             min_ingredientes=min_ingredientes, 
                                                             max_ingredientes=max_ingredientes,
-                                                            min_unidades=min_unidades, max_unidades=max_unidades
+                                                            min_unidades=min_unidades, max_unidades=max_unidades,
+                                                            min_precio = min_precio, max_precio=max_precio
                                                             )
 
             
