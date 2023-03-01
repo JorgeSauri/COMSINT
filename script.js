@@ -56,6 +56,8 @@ form.addEventListener('submit', async function (event) {
 		}
 
 	    let recetas = await response.json();
+        // columnas de la respuesta: 
+        // nombre_del_platillo, ingredientes, kcal, proteinas_gr, carbohidratos_gr, grasas_gr, puntaje_platillo, costo_receta
                 
 		table.innerHTML = '';
 
@@ -64,12 +66,54 @@ form.addEventListener('submit', async function (event) {
         if  (recetas.length>0){
             noresults.classList.add('hidden');
             for(i=0;i<recetas.length;i++){
-            receta = recetas[i]
-                const row = table.insertRow();        
-                row.insertCell().textContent = receta.nombre_del_platillo.slice(0,30);
+                receta = recetas[i]
+                const row = table.insertRow();   
+                row.addEventListener('click', showFichaReceta);    
+
+                //cell 0
+                const platillo = row.insertCell();
+                platillo.textContent = receta.nombre_del_platillo;
+                platillo.id = "id_nombre_platillo";
+                
+                //cell 1
                 row.insertCell().textContent = receta.ingredientes.slice(0,100) + '...';
                 row.insertCell().textContent = receta.puntaje_platillo;
-                row.insertCell().textContent = receta.costo_receta;           
+
+                //cell 2
+                const costo_platillo = row.insertCell();
+                costo_platillo.textContent = receta.costo_receta;
+
+                //cell 3
+                //ingredientes completos:
+                const hidIng = row.insertCell();
+                hidIng.id = 'id_ingredientes_platillo';
+                hidIng.textContent = receta.ingredientes;
+                hidIng.style.display = 'none';
+
+                //info nutricional:
+                //cell 4            
+                const kcal = row.insertCell();
+                kcal.id = 'id_kcal_platillo';
+                //cell 5
+                const prot = row.insertCell();
+                prot.id = 'id_prot_platillo';
+                //cell 6
+                const carb = row.insertCell();
+                carb.id = 'id_carb_platillo';
+                //cell 7
+                const grasa = row.insertCell();
+                grasa.id = 'id_grasa_platillo';
+
+                kcal.textContent = receta.kcal;
+                kcal.style.display = 'none';
+                prot.textContent = receta.proteinas_gr;
+                prot.style.display = 'none';
+                carb.textContent = receta.carbohidratos_gr;
+                carb.style.display = 'none';
+                grasa.textContent = receta.grasas_gr;
+                grasa.style.display = 'none';
+
+                         
             }
             
             tabla.classList.remove('hidden');
@@ -87,3 +131,23 @@ form.addEventListener('submit', async function (event) {
 		console.error('Error:', error);
 	}
 });
+
+
+function showFichaReceta() {
+    const nombre = this.cells[0].textContent;
+    const costo = this.cells[2].textContent;
+    const ingredientes = this.cells[3].textContent;
+    const kcal = this.cells[4].textContent;
+    const prot = this.cells[5].textContent;
+    const carb = this.cells[6].textContent;
+    const grasa = this.cells[7].textContent;
+
+    const fichaReceta = document.getElementById('ficha-receta');
+
+    fichaReceta.removeAttribute('hidden');
+
+  }
+
+  
+  
+  

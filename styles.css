@@ -17,6 +17,128 @@ body {
     margin: auto;
 }
 
+#ficha-receta {
+    position: absolute;
+    width: 50rem;
+    height: 30rem;   
+    top: 1rem;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    margin: auto;
+    box-shadow: 0 15px 15px rgba(0, 0, 0, 0.7);
+    background-color: rgb(238, 238, 238);    
+}
+
+hr {
+    border: none;
+    height: 2px;
+    background-color: rgb(167, 166, 166);
+    width: 90%;
+    margin: 1rem auto;
+}
+
+#titulo-receta {
+    margin-left: 2rem;
+    margin-top: 1rem;
+    font-family: Verdana, Geneva, Tahoma, sans-serif;
+    font-size: 24pt;
+    font-weight: bolder;    
+    color: rgb(34, 34, 34);
+}
+
+#lista-ingredientes {
+    position: relative; 
+    left: 2rem;  
+}
+
+#titulo-ingredientes {
+    font-family: Verdana, Geneva, Tahoma, sans-serif;
+    font-size: 16pt;
+    font-weight: bold;    
+    color: rgb(82, 82, 82);
+}
+
+#ul-ingredientes {   
+    margin-right: 5rem;
+    width: 10rem auto;
+    font-family: Verdana, Geneva, Tahoma, sans-serif;
+    font-size: 10pt;
+    font-weight: normal;    
+    color: rgb(54, 54, 54);
+}
+
+ul {
+    width: 55%;
+    margin: left;
+  }
+  
+  
+
+#info-nut {
+    position: absolute;
+    top: 5rem;
+    right: 2.5rem;
+    width: 28%;
+    height: 60%;  
+    padding: 0.5rem;
+    background-color: white;
+    border: 1px solid rgb(0, 0, 0);
+    border-radius: 10px;    
+    background-color: rgb(255, 255, 255);
+    font-family: Verdana, Geneva, Tahoma, sans-serif;
+    font-size: 13px;
+    color: black;   
+  }
+
+#receta-btn {
+    position: relative;
+    left: 0;
+    right: 0;
+    top: 6rem;
+    bottom: 0;
+    width: 45rem;
+    height: 3rem;
+    background-color: #505050; 
+	color: white;
+	cursor: pointer;
+    padding: 10px;
+	border: none;
+	border-radius: 3px;
+	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+	margin-right: 20px;
+    font-family: Verdana, Geneva, Tahoma, sans-serif;
+    font-size: 12pt;
+    align-self: flex-end;
+}
+#receta-btn:hover {
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+    background-color: #727272;
+    
+}
+  
+  #info-nut p:first-child {
+    font-weight: bolder;
+    font-size: 16px;
+    /* border-bottom: 2px solid black; */
+     
+  }
+  
+  #info-nut p:not(:first-child) {
+    border-bottom: 1px solid rgb(0, 0, 0);
+    padding-top: 0.5rem;
+    /* background-color: rgb(245, 245, 245); */
+  }
+
+  #info-nut p:last-child {
+    border-top: 2px solid black;
+    border-bottom: 2px solid black;
+    background-color: rgb(245, 245, 245);
+    margin-top: 3rem;
+    font-weight: bold;
+    font-size: 13px;
+  }
+
 #no-results{
     margin: auto;
     font-family: Verdana, Geneva, Tahoma, sans-serif;
@@ -71,8 +193,7 @@ input[type="submit"] {
 	margin-right: 20px;
 }
 
-input[type="submit"] {
-	
+input[type="submit"] {	
     background-color: #16947b;
 	color: white;
 	cursor: pointer;
