@@ -51,22 +51,12 @@
         </div>
 
         <div id="ficha-receta" class="hidden">
-          <div id="titulo-receta"> Pozole Mexiquense</div>
+          <div id="titulo-receta"> </div>
           <hr>
           <div id="lista-ingredientes">
               <div id="titulo-ingredientes">Ingredientes:</div>
               <ul id="ul-ingredientes">
-                  <!-- <li>800 gramos de Carne (paceto o colita de cuadril)</li>
-                  <li>2 unidades de Cebolla</li>
-                  <li>2 unidades de Ajo</li>
-                  <li>2 cucharadas soperas de Aceite</li>
-                  <li>2 cucharadas soperas de Harina</li>
-                  <li>4 unidades de Zanahoria</li>
-                  <li>2 tazas de Caldo</li>
-                  <li>1 pizca de Pimienta</li>
-                  <li>1 pizca de Perejil</li>
-                  <li>1 pizca de Mostaza seca</li>
-                  <li>1 pizca de Sal</li>                        -->
+                    -->
               </ul>
               
               <button id="receta-btn" onclick="hideFichaReceta()">Cerrar</button>
@@ -257,6 +247,7 @@
 
     const fichaReceta = document.getElementById('ficha-receta');
     const nombreReceta = fichaReceta.querySelector('#titulo-receta');
+    nombreReceta.textContent = nombre;
     const lista_ing = ingredientes.split(',');
 
     const ulIng = document.getElementById('ul-ingredientes');

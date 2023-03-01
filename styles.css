@@ -20,7 +20,7 @@ body {
 #ficha-receta {
     position: absolute;
     width: 50rem;
-    height: 30rem;   
+    height: 40rem;   
     top: 1rem;
     left: 0;
     right: 0;
@@ -42,7 +42,7 @@ hr {
     margin-left: 2rem;
     margin-top: 1rem;
     font-family: Verdana, Geneva, Tahoma, sans-serif;
-    font-size: 24pt;
+    font-size: 20pt;
     font-weight: bolder;    
     color: rgb(34, 34, 34);
 }
@@ -63,7 +63,7 @@ hr {
     margin-right: 5rem;
     width: 10rem auto;
     font-family: Verdana, Geneva, Tahoma, sans-serif;
-    font-size: 10pt;
+    font-size: 8pt;
     font-weight: normal;    
     color: rgb(54, 54, 54);
 }
