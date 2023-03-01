@@ -1113,7 +1113,7 @@ class Recomendador():
         # Utilizaremos como métrica de pérdida el MAE, ya que es un problema de regresión
         self.modeloCNN.compile(Adam(learning_rate=learning_rate), loss="mean_absolute_error", metrics=['mae'])
         
-        if (verbose): self.modeloCNN.summary()
+        #if (verbose): self.modeloCNN.summary()
 
         # El modelo se guardará en la carpeta basedir + 'Modelos/'
         archivoC = self.basedir + 'Modelos/Modelo_Nut_FV_DistilBERT_0'+str(version)+'_EMBED-'+ str(self.EMB_SIZE) +'_CNN.h5'
@@ -1204,7 +1204,7 @@ class Recomendador():
         # Utilizaremos como métrica de pérdida el MAE, ya que es un problema de regresión
         self.modeloCNN_precios.compile(Adam(learning_rate=learning_rate), loss="mean_absolute_error", metrics=['mae'])
         
-        if (verbose): self.modeloCNN_precios.summary()
+        #if (verbose): self.modeloCNN_precios.summary()
 
         # El modelo se guardará en la carpeta basedir + 'Modelos/'
         archivo = self.basedir + 'Modelos/Modelo_Precios_FV_DistilBERT_0'+str(version)+'_EMBED-'+ str(self.EMB_SIZE) +'_CNN.h5'
