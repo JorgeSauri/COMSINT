@@ -66,10 +66,10 @@ form.addEventListener('submit', async function (event) {
         if  (recetas.length>0){
             noresults.classList.add('hidden');
             for(i=0;i<recetas.length;i++){
-                receta = recetas[i]
+                const receta = recetas[i];
                 const row = table.insertRow();   
-                row.addEventListener('click', showFichaReceta);    
-
+                //row.setAttribute('onclick', 'showFichaReceta()');        
+                
                 //cell 0
                 const platillo = row.insertCell();
                 platillo.textContent = receta.nombre_del_platillo;
@@ -81,6 +81,7 @@ form.addEventListener('submit', async function (event) {
 
                 //cell 2
                 const costo_platillo = row.insertCell();
+                costo_platillo.id = 'id_costo_platillo';
                 costo_platillo.textContent = receta.costo_receta;
 
                 //cell 3
@@ -113,6 +114,10 @@ form.addEventListener('submit', async function (event) {
                 grasa.textContent = receta.grasas_gr;
                 grasa.style.display = 'none';
 
+                row.onclick = function() {
+                    showFichaReceta(receta.nombre_del_platillo, receta.costo_receta, receta.ingredientes, receta.kcal, receta.proteinas_gr, receta.carbohidratos_gr, receta.grasas_gr);
+                  };
+
                          
             }
             
@@ -133,21 +138,15 @@ form.addEventListener('submit', async function (event) {
 });
 
 
-function showFichaReceta() {
-    const nombre = this.cells[0].textContent;
-    const costo = this.cells[2].textContent;
-    const ingredientes = this.cells[3].textContent;
-    const kcal = this.cells[4].textContent;
-    const prot = this.cells[5].textContent;
-    const carb = this.cells[6].textContent;
-    const grasa = this.cells[7].textContent;
+// function showFichaReceta(nombre, costo, ingredientes, kcal, prot, carb, grasa) {
 
-    const fichaReceta = document.getElementById('ficha-receta');
+//     alert(nombre);
 
-    fichaReceta.removeAttribute('hidden');
+//     const fichaReceta = document.getElementById('ficha-receta');
 
-  }
+//     fichaReceta.removeAttribute('hidden');
+//     alert(fichaReceta);
 
-  
+// }
   
   
