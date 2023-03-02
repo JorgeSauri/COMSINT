@@ -138,15 +138,5 @@ form.addEventListener('submit', async function (event) {
 });
 
 
-// function showFichaReceta(nombre, costo, ingredientes, kcal, prot, carb, grasa) {
-
-//     alert(nombre);
-
-//     const fichaReceta = document.getElementById('ficha-receta');
-
-//     fichaReceta.removeAttribute('hidden');
-//     alert(fichaReceta);
-
-// }
   
   
