@@ -59,7 +59,7 @@
                     -->
               </ul>
               
-              <button id="receta-btn" onclick="hideFichaReceta()">Cerrar</button>
+              <button id="receta-btn" onclick="hideFichaReceta()"> Regresar </button>
 
           </div>
 
@@ -260,10 +260,8 @@
 
     const html = '<p>Información Nutricional</p><p>Energía total: '+ String(kcal) +'kcal</p> <p>Proteínas totales: '+String(prot)+'gr</p> <p>Carbohidratos totales: '+String(carb)+'gr</p><p>Grasas totales:'+String(grasa)+'gr</p><p>Costo estimado receta: $'+String(costo)+' MXN</p>';
 
-
     document.getElementById('info-nut').innerHTML = html;
-
-
+    window.scrollTo(0, 0);    
     fichaReceta.style.display = 'block';
 
   }
