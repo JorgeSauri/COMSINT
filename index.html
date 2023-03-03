@@ -251,6 +251,8 @@
     const lista_ing = ingredientes.split(',');
 
     const ulIng = document.getElementById('ul-ingredientes');
+    ulIng.innerHTML = '';
+
     //agrega los elementos a la lista UL
     lista_ing.forEach((ingrediente) => {
       const li = document.createElement('li');
