@@ -404,6 +404,88 @@ class Recomendador():
         if (verbose): return dfFiltrados
 
 
+    def FiltrarRecetario_por_CanastaBasica_2(self,
+                          lista_ingredientes = '',
+                          col_title='nombre_del_platillo', col_ingredientes='ingredientes',
+                          similitud=0.6, max_rows=10, verbose=True):
+        """
+          Procesa el recetario cargado al instanciar la clase, y trata de encontrar las recetas más
+          similares en cuanto a lista de ingredientes con el dataset de canasta básica.
+          (Usando la distancia de Chebyshev)
+
+          Parámetros:
+          -----------------------------------------------------------------------------------------------------------
+          @col_title: Nombre de la columna del csv del titulo de la receta
+          @col_ingredientes: Nombre de la columna del csv con los ingredientes
+          @similitud: Similitud de ingredientes mínima permitida con la lista de la canasta básica
+          @max_rows: Número máximo de filas que devuelve la función ordenadas de mayor a menor similitud
+          @verbose: Indica si se imprimen mensajes durante el proceso
+          -----------------------------------------------------------------------------------------------------------
+
+          Devuelve:
+          Dataframe de pandas con las columnas: 'platillo', 'ingredientes', 'similitud'
+
+        """
+        from sklearn.preprocessing import LabelEncoder
+        from tensorflow.keras.preprocessing.sequence import pad_sequences
+        from scipy.spatial import distance
+
+        print('ingredientes recibidos:', lista_ingredientes)
+        print('ingredientes en caché:', self.cache_ingredientes)
+        
+        # Si los ingredientes pasados al método son otros, reiniciamos el caché de feature vectors
+        if lista_ingredientes.lower().strip() != self.cache_ingredientes.lower().strip():
+            # Limpiar caché:
+            print('Limpiando caché...\n')            
+            self.cache_ingredientes = lista_ingredientes.lower().strip()        
+
+
+        # Limpiar el dataframe de recetas
+        if (lista_ingredientes.strip() == ''):
+            canasta = [prod.lower().strip() for prod in self.df_canasta['producto']]
+        else:
+            canasta = lista_ingredientes.strip().split(',')
+
+        # Limpiar el dataframe de información nutricional
+        self.df_nutricion['nombre'] = self.df_nutricion['nombre'].str.lower()
+
+        Platillos = []
+        Ingredientes = []
+        Sim = []
+
+        print('Buscando recetas con ingredientes de la canasta básica... \n')
+
+        lenCanasta = len(canasta)
+        le = LabelEncoder()      
+
+        for i in tqdm(range(len(self.df_recetario))):
+            row = self.df_recetario.iloc[i]
+            #ingredientes_clean = self.LimpiarString(row[col_ingredientes])
+            ings = self.LimpiarString(row[col_ingredientes]).split(' ')
+            lenIngs = len(ings)   
+            maxlen = max(lenCanasta, lenIngs)              
+            enc1 = le.fit_transform(canasta).tolist()
+            enc2 = le.fit_transform(ings).tolist()
+            p1 = pad_sequences([enc1], maxlen=maxlen, padding='post', truncating='post', value=0).squeeze()
+            p2 = pad_sequences([enc2], maxlen=maxlen, padding='post', truncating='post', value=0).squeeze()             
+            similaridad = (distance.chebyshev(p1, p2)-1)/maxlen           
+            if (similaridad >= similitud):
+                Platillos.append(row[col_title])
+                Ingredientes.append(row[col_ingredientes])
+                Sim.append(similaridad)
+
+        dfFiltrados = pd.DataFrame(list(zip(Platillos, Ingredientes, Sim)),
+                                   columns=['nombre_del_platillo', 'ingredientes', 'similitud'])
+
+        dfFiltrados = dfFiltrados.sort_values(by=['similitud'], ascending=False)[:max_rows]
+
+        print(' \n\n', len(dfFiltrados), 'platillos encontrados con similitud mayor a', similitud)
+
+        # Guardamos el dataframe en una variable de la clase, y también la regresamos
+        self.DF_RecetasFiltradas = dfFiltrados
+
+        if (verbose): return dfFiltrados
+
     ############################################################################################################
     ############################################################################################################
     ## MÉTODOS PARA EL CÁLCULO DE INFORMACIÓN NUTRICIONAL:
@@ -902,6 +984,7 @@ class Recomendador():
             return model
 
 
+
     ############################################################################################################
     ############################################################################################################
     ## MÉTODO PARA MOSTRAR MÉTRICAS DE EVALUACIÓN DE NUESTROS MODELOS
@@ -1139,6 +1222,146 @@ class Recomendador():
         if (verbose): self.EvaluarModeloRegresion(self.INFO_COLS, history, x_val, y_val, self.modeloCNN)   
 
         return self.modeloCNN, history
+
+
+    ####################################################
+    # FINE TUNNING DEL MODELO PARA RECETAS NUEVAS:
+    ####################################################
+    def FineTuneModeloNut(self, modelo = '', 
+                            df_nutricionales='nutricion.csv', 
+                            df_training='',
+                            df_test='', df_val='',
+                            min_ingredientes=5, max_ingredientes=15,
+                            min_unidades=5, max_unidades=20,
+                            min_kcal=0, max_kcal= 9999999,
+                            learning_rate = 1e-4,
+                            batch_size = 8,
+                            initial_epoch=0,
+                            epochs = 20,
+                            version =4, kernels=128,                   
+                            steps_per_epoch = None,                       
+                            verbose=True, save=True, savenumpy=False):
+        """
+        Congela las capas convolucionales del modelo y entrena las capas densas
+        con los nuevos datos.
+        
+        Inputs:
+        - modelo: el modelo de keras ya entrenado que se desea afinar
+        - X_train: el conjunto de entrenamiento de las nuevas recetas
+        - y_train: las etiquetas correspondientes al conjunto de entrenamiento
+        - X_val: el conjunto de validación de las nuevas recetas
+        - y_val: las etiquetas correspondientes al conjunto de validación
+        - epochs: número de epochs de entrenamiento
+        - batch_size: tamaño del batch
+        - lr: tasa de aprendizaje del optimizador
+        
+        Output:
+        - modelo_entrenado: el modelo afinado con los nuevos datos
+        """
+
+        if df_training != '':
+            npy_training = pd.read_csv(self.basedir + 'datasets/' + df_training, encoding = "ISO-8859-1").to_numpy()           
+            print('Cargado dataset de entrenamiento:', self.basedir + 'datasets/' + df_training)
+            recetas_train = []
+            self.NUM_RECETAS = len(npy_training)
+            print(self.NUM_RECETAS, 'recetas encontradas.')
+            for i in range(len(npy_training)):
+                row = npy_training[i]
+                nombre = row[2]
+                kcal = float(row[3])
+                gramos_carb = float(row[4])
+                gramos_proteina = float(row[5])
+                gramos_grasa = float(row[6])
+
+
+                recetas_train.append([nombre, round(kcal,2), 
+                                    round(gramos_carb,2), 
+                                    round(gramos_proteina,2), 
+                                    round(gramos_grasa,2)]
+                                    )
+
+            recetas_train = np.array(recetas_train)             
+            x, y = self.calcular_feature_vecs(recetas_train, max_len=self.EMB_SIZE, save=savenumpy, verbose=verbose)
+
+        else:
+            dataset_entrenamiento = self.generar_dataset_entrenamiento_nut(df_nutricionales=df_nutricionales,
+                                                                numero_recetas=self.NUM_RECETAS, 
+                                                                min_ingredientes=min_ingredientes, 
+                                                                max_ingredientes=max_ingredientes,
+                                                                min_unidades=min_unidades, max_unidades=max_unidades,
+                                                                min_kcal=min_kcal, max_kcal= max_kcal)
+
+               
+            x, y = self.calcular_feature_vecs(dataset_entrenamiento, max_len=self.EMB_SIZE, save=savenumpy, verbose=verbose)
+
+        if (df_test == ''): #Si no proporcionas un dataframe de test, generarlo:
+            x_train, x_test, y_train, y_test = train_test_split(x, y, train_size=0.8, shuffle=True)
+        else:
+            x_train = x
+            y_train = y 
+            x_test, y_test = self.CargarNumpyRecetas(9, self.EMB_SIZE, verbose=verbose, sufix='_TEST')
+            
+            if len(x_test)==0 or len(y_test)==0:
+                print('Procesando dataset de testing...')          
+                array = self.procesar_dataset_validacion(df_test)
+                x_test, y_test = self.calcular_feature_vecs(array, max_len=self.EMB_SIZE, save=True, verbose=verbose, sufix='_TEST')
+            
+        if (verbose): 
+            if (df_val==''):
+                x_test, x_val, y_test, y_val = train_test_split(x_test, y_test, train_size=0.8)
+            else:      
+                x_val, y_val = self.CargarNumpyRecetas(7, self.EMB_SIZE, verbose=verbose, sufix='_VAL') 
+                if len(x_val)==0 or len(y_val)==0:  
+                    print('Procesando dataset de validación...')         
+                    array2 = self.procesar_dataset_validacion(df_val)
+                    x_val, y_val = self.calcular_feature_vecs(array2, max_len=self.EMB_SIZE, save=True, verbose=verbose, sufix='_VAL')
+
+        # Utilizamos la utilería Dataset de TensorFlow para que gestione la alimentación de los datasets de 
+        # entrenamiento y no aparezcan errores por desbordamiento de memoria RAM o de RAM de GPU     
+        train_dataset = tf.data.Dataset.from_tensor_slices((x_train, y_train)).batch(batch_size)
+        test_dataset = tf.data.Dataset.from_tensor_slices((x_test, y_test)).batch(batch_size)
+
+        # Preparamos el modelo para hacerle fine tunning:
+        if modelo == '': modelo = self.modeloCNN
+
+        # Congelamos las capas convolucionales
+        for layer in modelo.layers[:11]:
+            layer.trainable = False
+
+        if verbose:
+            for layer in modelo.layers:
+                print(layer.name, layer.trainable)
+
+        # Utilizaremos como métrica de pérdida el MAE, ya que es un problema de regresión
+        modelo.compile(Adam(learning_rate=learning_rate), loss="mean_absolute_error", metrics=['mae'])
+        
+        # El modelo se guardará en la carpeta basedir + 'Modelos/'
+        archivoC = self.basedir + 'Modelos/Modelo_Nut_FV_DistilBERT_0'+str(version)+'_EMBED-'+ str(self.EMB_SIZE) +'_CNN.h5'
+       
+        history = modelo.fit(train_dataset,
+                            batch_size = batch_size,
+                            epochs = epochs,
+                            initial_epoch=initial_epoch,                                
+                            steps_per_epoch=steps_per_epoch,
+                            validation_data=test_dataset,                               
+                            verbose=verbose)
+
+        if (save): 
+            modelo.save(archivoC)
+            print('modelo guardado en:', archivoC)
+
+        # Regresar las capas como estaban:
+        for layer in modelo.layers[:11]:
+            layer.trainable = True
+
+        self.modeloCNN = modelo
+
+        if (verbose): self.EvaluarModeloRegresion(self.INFO_COLS, history, x_val, y_val, self.modeloCNN)   
+
+        return modelo, history
+
+
+
 
     ##################################################
     #### MODELO DE PREDICCIÓN DE PRECIOS
