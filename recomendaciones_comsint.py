@@ -1206,6 +1206,10 @@ class Recomendador():
 
         if check_fileC:
             self.modeloCNN = tf.keras.models.load_model(archivoC)
+        
+        # Nos aseguramos que todas las capas sean entrenables:
+        for layer in self.modeloCNN.layers:
+            layer.trainable = True
        
         history = self.modeloCNN.fit(train_dataset,
                                 batch_size = batch_size,
