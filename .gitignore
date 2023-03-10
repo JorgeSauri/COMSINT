@@ -16,3 +16,5 @@ Modelos/Modelo_Nut_FV_DistilBERT_04_EMBED-512_CNN.h5
 Modelos/Modelo_Precios_FV_DistilBERT_04_EMBED-256_CNN.h5
 Modelos/Modelo_Precios_FV_DistilBERT_04_EMBED-512_CNN.h5
 .idea/.name
+__pycache__/recomendaciones_comsint_mindspore.cpython-38.pyc
+__pycache__/stablediffusion.cpython-310.pyc
