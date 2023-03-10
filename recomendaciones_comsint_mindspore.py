@@ -8,13 +8,13 @@ warnings.filterwarnings("ignore", 'This pattern has match groups')
 
 import mindspore.nn as nn
 import mindspore
-from mindspore import Tensor
+from mindspore import Tensor, float32
 import mindspore.context as context
 import mindspore.dataset as ds
 from mindspore.nn import Loss
 from mindspore.nn import metrics
-from mindspore.train.callback import ModelCheckpoint, CheckpointConfig, LossMonitor
-from mindspore.train.serialization import save_checkpoint, load_checkpoint, _load_graph, export
+import mindspore.ops.operations as P
+from mindspore.train.serialization import save_checkpoint, load_checkpoint
 
 
 from transformers import TFDistilBertModel, DistilBertTokenizerFast
@@ -34,49 +34,59 @@ from sklearn.model_selection import train_test_split
 import os.path
 
 
-class ModeloCNNNut(nn.Cell):
-    def __init__(self, input_shape, emb_size, kernels, numero_salidas):
-        super(ModeloCNNNut, self).__init__()
-
-        self.reshape = nn.Reshape((-1, input_shape), (emb_size, 768))
-        self.bn = nn.BatchNorm1d(emb_size * 768)
-        self.conv1 = nn.Conv1d(emb_size * 768, kernels * 4, kernel_size=5, pad_mode='valid')
-        self.relu = nn.ReLU()
-        self.pool1 = nn.MaxPool1d(kernel_size=2, stride=1, pad_mode='valid')
-        self.conv2 = nn.Conv1d(kernels * 4, kernels * 2, kernel_size=3, pad_mode='valid')
-        self.pool2 = nn.MaxPool1d(kernel_size=2, stride=1, pad_mode='valid')
-        self.conv3 = nn.Conv1d(kernels * 2, kernels, kernel_size=3, pad_mode='valid')
-        self.pool3 = nn.MaxPool1d(kernel_size=2, stride=1, pad_mode='valid')
-        self.dropout1 = nn.Dropout(0.2)
-        self.flatten = nn.Flatten()
-        self.fc1 = nn.Dense(kernels * 16, 256)
-        self.fc2 = nn.Dense(256, 128)
-        self.fc3 = nn.Dense(128, 64)
-        self.dropout2 = nn.Dropout(0.25)
-        self.fc4 = nn.Dense(64, numero_salidas)
+class Reshape(nn.Cell):
+    def __init__(self, shape):
+        super(Reshape, self).__init__()
+        self.reshape_op = P.Reshape()
+        self.shape = shape
 
     def construct(self, x):
-        x = self.reshape(x)
-        x = self.bn(x)
-        x = self.conv1(x)
+        return self.reshape_op(x, self.shape)
+    
+
+class ModeloCNNNut(nn.Cell):
+    def __init__(self, emb_size, kernels, numero_salidas):
+        super(ModeloCNNNut, self).__init__()
+
+        self.reshape = Reshape((-1, emb_size, 768))
+        self.conv1d_1 = nn.Conv1d(emb_size, kernels*4, kernel_size=5)
+        self.maxpool1d_1 = nn.MaxPool1d(kernel_size=2, stride=1, pad_mode="valid")
+        self.conv1d_2 = nn.Conv1d(kernels*4, kernels*2, kernel_size=3)
+        self.maxpool1d_2 = nn.MaxPool1d(kernel_size=2, stride=1, pad_mode="valid")
+        self.conv1d_3 = nn.Conv1d(kernels*2, kernels, kernel_size=3)
+        self.maxpool1d_3 = nn.MaxPool1d(kernel_size=2, stride=1, pad_mode="valid")
+        self.dropout = nn.Dropout(0.2)
+        self.flatten = nn.Flatten()
+        self.dense_1 = nn.Dense(kernels, 256)
+        self.dense_2 = nn.Dense(256, 128)
+        self.dense_3 = nn.Dense(128, 64)
+        self.dropout_2 = nn.Dropout(0.25)
+        self.dense_4 = nn.Dense(64, numero_salidas)
+        self.relu = nn.ReLU()
+
+    def construct(self, x):
+        x = self.reshape(x)   
+        x = self.conv1d_1(x)
+        x = self.relu(x)        
+        x = self.maxpool1d_1(x)
+        x = self.conv1d_2(x)
         x = self.relu(x)
-        x = self.pool1(x)
-        x = self.conv2(x)
-        x = self.relu(x)
-        x = self.pool2(x)
-        x = self.conv3(x)
-        x = self.relu(x)
-        x = self.pool3(x)
-        x = self.dropout1(x)
+        x = self.maxpool1d_2(x)
+        x = self.conv1d_3(x)
+        x = self.relu(x) 
+        x = self.maxpool1d_3(x)
+        x = self.dropout(x)
         x = self.flatten(x)
-        x = self.fc1(x)
-        x = self.relu(x)
-        x = self.fc2(x)
-        x = self.relu(x)
-        x = self.fc3(x)
-        x = self.relu(x)
-        x = self.dropout2(x)
-        x = self.fc4(x)
+        x = self.dense_1(x)
+        x = self.relu(x) 
+        x = self.dense_2(x)
+        x = self.relu(x) 
+        x = self.dense_3(x)
+        x = self.relu(x) 
+        x = self.dropout_2(x)
+        x = self.dense_4(x)
+        x = self.relu(x) 
+
         return x
 
 
@@ -974,7 +984,7 @@ class Recomendador():
     ############################################################################################################
     ############################################################################################################
 
-    def GenerarModeloRegresionCNN(self, input_shape, emb_size, numero_salidas, kernels=128):
+    def GenerarModeloRegresionCNN(self, emb_size, numero_salidas, kernels=128):
             """
             Devuelve un modelo de CNN 1D para aprender 
             los patrones de ingredientes y sus valores nutricionales y sus precios.
@@ -994,12 +1004,11 @@ class Recomendador():
             Una instancia del modelo MindSpore
 
             """
+                        
+            model = ModeloCNNNut(emb_size, kernels, numero_salidas)
             
-            input_tensor = Tensor(np.zeros((1, input_shape)), mindspore.float32)
-            model = ModeloCNNNut(input_shape, emb_size, kernels, numero_salidas)
             
-            
-            return model(input_tensor)
+            return model
 
 
 
@@ -1224,23 +1233,22 @@ class Recomendador():
 
 
         # Creamos el dataset de entrenamiento
-        train_dataset = ds.GeneratorDataset((x_train, y_train), ['data', 'label'], 
-                                            shuffle=True, num_parallel_workers=4, 
-                                            batch_size=batch_size)
+        train_dataset = ds.GeneratorDataset(list(zip(x_train, y_train)), ['data', 'label'], 
+                                            shuffle=True #, num_parallel_workers=4
+                                            )
 
         # Creamos el dataset de prueba
-        test_dataset = ds.GeneratorDataset((x_test, y_test), ['data', 'label'], 
-                                            shuffle=False, num_parallel_workers=4, 
-                                            batch_size=batch_size)
+        test_dataset = ds.GeneratorDataset(list(zip(x_test, y_test)), ['data', 'label'], 
+                                            shuffle=False #, num_parallel_workers=4, num_samples=batch_size
+                                            )
 
 
-        self.modeloCNN = self.GenerarModeloRegresionCNN(input_shape=(x_train.shape[1]), 
-                                                        emb_size=self.EMB_SIZE, kernels=kernels,
+        self.modeloCNN = self.GenerarModeloRegresionCNN(emb_size=self.EMB_SIZE, kernels=kernels,
                                                         numero_salidas=y_train.shape[1])
 
 
         optimizer = nn.Adam(self.modeloCNN.trainable_params(), learning_rate=0.001)
-        loss_fn = Loss('mse')
+        loss_fn = nn.loss.MSELoss()
 
         # Definir el modelo de entrenamiento
         model_train = nn.TrainOneStepCell(self.modeloCNN, optimizer, loss_fn)
@@ -1261,11 +1269,12 @@ class Recomendador():
         # Entrenar el modelo
        
         for epoch in range(epochs):
-            print('Época ', epoch, '/', epochs, ':\n')
-            #for i, data in enumerate(train_dataset.create_dict_iterator()):
-            for i, data in tqdm(enumerate(train_dataset.create_dict_iterator()), desc='Training', total=steps_per_epoch):
-                inputs = Tensor(data['data'], mindspore.float32)
-                labels = Tensor(data['label'], mindspore.float32)
+            print('Época ', epoch, '/', epochs, ':\n')            
+            for i, data in enumerate(train_dataset.create_dict_iterator()):
+                inputs = Tensor(data['data'], float32)
+                labels = Tensor(data['label'], float32)
+                # print('Entrada:', inputs)
+                # print('Labels:', labels)
                 loss = model_train(inputs, labels)
 
             # Evaluar modelo en conjunto de validación
@@ -1539,11 +1548,13 @@ class Recomendador():
         """
 
         # Modelo nutricional:
-        archivoN = self.basedir + 'Modelos/Modelo_Nut_FV_DistilBERT_0'+str(version)+'_EMBED-'+ str(emb_size) +'_CNN.h5'
+
+        archivoN = self.basedir + 'Modelos/Mindspore/Modelo_Nut_FV_DistilBERT_0'+str(version)+'_EMBED-'+ str(self.EMB_SIZE) +'_CNN_MINDSPORE.ckpt'
+
         check_fileN = os.path.isfile(archivoN)
 
         if check_fileN:
-            self.modeloCNN = tf.keras.models.load_model(archivoN)
+            self.modeloCNN = load_checkpoint(archivoN)
             self.EMB_SIZE = emb_size
             print('Modelo', archivoN, 'cargado con éxito.')
         else:
